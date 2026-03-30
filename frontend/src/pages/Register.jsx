@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { FlaskConical, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import Field from '../components/Field'
-
+import logo from '../asset/logo.png'
 
 export default function Register() {
   const { register } = useAuth()
@@ -42,11 +42,15 @@ export default function Register() {
     >
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <div className="flex items-center gap-2 mb-6">
-            <FlaskConical size={22} style={{ color: '#1a3a5c' }} />
-            <span className="font-bold text-sm" style={{ color: '#1a3a5c' }}>
-              Saravoan Medical Laboratory
-            </span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+                <div className='flex items-center'><img src={logo} alt="Logo" className="h-16 w-16" /></div>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="font-bold text-sm" style={{ color: '#1a3a5c' }}>
+                Saravoan Medical Laboratory
+              </span>
+            </div>
           </div>
 
           <h2 className="text-2xl font-bold mb-1" style={{ color: '#1a3a5c' }}>

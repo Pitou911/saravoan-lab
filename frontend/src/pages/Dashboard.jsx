@@ -6,7 +6,7 @@ import {
   FlaskConical, LogOut, Printer, Save, RotateCcw,
   CheckSquare, ChevronDown, ChevronUp, ClipboardList, User
 } from 'lucide-react'
-
+import logo from '../asset/logo.png'
 const today   = new Date().toISOString().split('T')[0]
 const nowTime = new Date().toTimeString().slice(0, 5)
 
@@ -266,7 +266,7 @@ export default function Dashboard() {
       <nav className="sticky top-0 z-50 shadow-md" style={{ background: '#1a3a5c' }}>
         <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <FlaskConical size={20} className="text-white" />
+            <div className='flex items-center'><img src={logo} alt="Logo" className="h-8 w-8" /></div>
             <div>
               <div className="text-white font-bold text-sm leading-tight">Saravoan Medical Laboratory</div>
               <div className="text-blue-200 text-xs">Lab Request System</div>

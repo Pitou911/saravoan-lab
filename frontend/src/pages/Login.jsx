@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { FlaskConical, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import logo from '../asset/logo.png'
 
 export default function Login() {
   const { login } = useAuth()
@@ -31,9 +32,7 @@ export default function Login() {
       {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-12 text-white">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/20">
-            <FlaskConical size={32} className="text-white" />
-          </div>
+            <div className='flex items-center'><img src={logo} alt="Logo" className="h-32 w-32" /></div>
         </div>
         <h1 className="text-4xl font-bold mb-3 text-center">Saravoan Medical</h1>
         <h2 className="text-xl font-light text-white/80 mb-6 text-center">Laboratory Management System</h2>
