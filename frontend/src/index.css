@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --lab-blue: #1a3a5c;
+  --lab-red: #c0392b;
+  --lab-light: #f0f4f8;
+  --lab-border: #d1dbe8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background-color: #f0f4f8;
+  color: #1a2535;
+}
+
+/* Print styles */
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  body { background: white; }
+  @page { margin: 10mm; size: A4; }
+}
+
+.print-only { display: none; }
+
+/* Checkbox custom style */
+.test-checkbox {
+  accent-color: #1a3a5c;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+/* Category header style */
+.category-header {
+  background-color: #1a3a5c;
+  color: white;
+  font-weight: 600;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  text-align: center;
+}
+
+/* Subtle scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f0f4f8; }
+::-webkit-scrollbar-thumb { background: #a0b4c8; border-radius: 3px; }
