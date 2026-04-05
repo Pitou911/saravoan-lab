@@ -7,6 +7,8 @@
 
 ---
 
+Email:    admin@saravoan.com
+Password: Admin@1234
 ## 📁 Project Structure
 
 ```

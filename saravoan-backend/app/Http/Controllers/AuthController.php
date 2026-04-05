@@ -40,15 +40,33 @@ class AuthController extends Controller
         $validated = $request->validate([
             'email'    => 'required|email',
             'password' => 'required',
+            'role'     => 'sometimes|in:doctor,admin',
         ]);
 
-        if (!Auth::attempt($validated)) {
+        if (!Auth::attempt(['email' => $validated['email'], 'password' => $validated['password']])) {
             throw ValidationException::withMessages([
                 'email' => ['The provided credentials are incorrect.'],
             ]);
         }
 
-        $user  = Auth::user();
+        $user = Auth::user();
+
+        // Admin portal: only admins
+        if (isset($validated['role']) && $validated['role'] === 'admin' && $user->role !== 'admin') {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => ['You do not have admin access.'],
+            ]);
+        }
+
+        // Doctor portal: block admins
+        if (isset($validated['role']) && $validated['role'] === 'doctor' && $user->role === 'admin') {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => ['Please use the admin portal to log in.'],
+            ]);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -61,7 +79,6 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
-
         return response()->json(['message' => 'Logged out successfully']);
     }
 

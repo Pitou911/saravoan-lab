@@ -1,5 +1,4 @@
 <?php
-// app/Models/User.php
 
 namespace App\Models;
 
@@ -30,6 +29,6 @@ class User extends Authenticatable
 
     public function labRequests()
     {
-        return $this->hasMany(LabRequest::class, 'doctor_id');
+        return $this->hasMany(\App\Models\LabRequest::class, 'doctor_id');
     }
 }

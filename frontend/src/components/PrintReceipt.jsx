@@ -12,7 +12,7 @@ const PrintReceipt = forwardRef(({ formData, selectedTests }, ref) => {
       {/* Header */}
       <div style={{ textAlign: 'center', borderBottom: '2px solid #1a3a5c', paddingBottom: '8px', marginBottom: '10px' }}>
         <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#1a3a5c' }}>
-          មន្ទីរពិសោធន៏វេជ្ជសា្រស្តសារាវ័ន្ត
+          មន្ទីរពិេសាធន៍េវជ្ជសា្រស្តសារាវ័ន្ត
         </div>
         <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#1a3a5c' }}>SARAVOAN MEDICAL LABORATORY</div>
         <div style={{ fontSize: '10px', color: '#555', marginTop: '2px' }}>
