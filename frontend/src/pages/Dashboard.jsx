@@ -195,7 +195,7 @@ thead th{padding:6px 10px;text-align:left;font-size:10.5px;font-weight:bold;bord
 @media print{body{padding:0;}}
 </style></head><body>
 <div class="header">
-  <div class="kh">មន្ទីរពិេសាធន៍េវជ្ជសា្រស្តសារាវ័ន្ត</div>
+  <div class="kh">មន្ទីរពិសោធន៍េវជ្ជសា្រស្តសារាវ័ន្ត</div>
   <div class="en">SARAVOAN MEDICAL LABORATORY</div>
   <div class="sub">TEL: +855 12 855 932 &nbsp;|&nbsp; +855 16 855 932</div>
   <div class="sub">Email: info@sml.com.kh &nbsp;|&nbsp; Website: www.sml.com.kh</div>
