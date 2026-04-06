@@ -39,38 +39,42 @@ class AdminController extends Controller
     }
 
     public function storeOtherTest(Request $request)
-    {
-        $this->requireAdmin($request);
+{
+    $this->requireAdmin($request);
 
-        $validated = $request->validate([
-            'name'     => 'required|string|max:255|unique:other_test_options,name',
-            'category' => 'nullable|string|max:100',
-        ]);
+    $validated = $request->validate([
+        'name'                 => 'required|string|max:255|unique:other_test_options,name',
+        'category'             => 'nullable|string|max:100',
+        'sample_type'          => 'nullable|string|max:100',
+        'collection_container' => 'nullable|string|max:100',
+    ]);
 
-        $option = OtherTestOption::create([...$validated, 'is_active' => true]);
+    $option = OtherTestOption::create([...$validated, 'is_active' => true]);
 
-        return response()->json([
-            'message' => 'Test option created.',
-            'data'    => $option,
-        ], 201);
-    }
+    return response()->json([
+        'message' => 'Test option created.',
+        'data'    => $option,
+    ], 201);
+}
 
     public function updateOtherTest(Request $request, $id)
-    {
-        $this->requireAdmin($request);
+{
+    $this->requireAdmin($request);
 
-        $option = OtherTestOption::findOrFail($id);
+    $option = OtherTestOption::findOrFail($id);
 
-        $validated = $request->validate([
-            'name'      => 'sometimes|string|max:255|unique:other_test_options,name,' . $id,
-            'category'  => 'nullable|string|max:100',
-            'is_active' => 'sometimes|boolean',
-        ]);
+    $validated = $request->validate([
+        'name'                 => 'sometimes|string|max:255|unique:other_test_options,name,' . $id,
+        'category'             => 'nullable|string|max:100',
+        'sample_type'          => 'nullable|string|max:100',
+        'collection_container' => 'nullable|string|max:100',
+        'is_active'            => 'sometimes|boolean',
+    ]);
 
-        $option->update($validated);
+    $option->update($validated);
 
-        return response()->json(['message' => 'Updated.', 'data' => $option]);
-    }
+    return response()->json(['message' => 'Updated.', 'data' => $option]);
+}
 
     public function destroyOtherTest(Request $request, $id)
     {

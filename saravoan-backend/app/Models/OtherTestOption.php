@@ -11,10 +11,12 @@ class OtherTestOption extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'category',
-        'is_active',
-    ];
+    'name',
+    'category',
+    'sample_type',
+    'collection_container',
+    'is_active',
+];
 
     protected $casts = [
         'is_active' => 'boolean',
