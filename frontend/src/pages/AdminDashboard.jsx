@@ -154,7 +154,7 @@ export default function AdminDashboard() {
   }
 
   // ── Collect unique existing values for dropdown suggestions ───
-  const existingCategories  = [...new Set(otherTests.map(t => t.category).filter(Boolean))]
+  const existingCategories  = [...new Set(['Other', ...otherTests.map(t => t.category).filter(Boolean)])]
   const existingSamples     = [...new Set([...SAMPLE_TYPES, ...otherTests.map(t => t.sample_type).filter(Boolean)])]
   const existingContainers  = [...new Set([...COLLECTION_CONTAINERS, ...otherTests.map(t => t.collection_container).filter(Boolean)])]
 
@@ -165,7 +165,7 @@ export default function AdminDashboard() {
     try {
       const r = await api.post('/admin/other-tests', {
         name:                 newName.trim(),
-        category:             newCat.trim() || null,
+        category:             newCat.trim() || 'Other',
         sample_type:          newSample || null,
         collection_container: newContainer || null,
       })
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
     try {
       const r = await api.put(`/admin/other-tests/${editId}`, {
         name:                 editName.trim(),
-        category:             editCat.trim() || null,
+        category:             editCat.trim() || 'Other',
         sample_type:          editSample || null,
         collection_container: editContainer || null,
       })
@@ -223,7 +223,7 @@ export default function AdminDashboard() {
 
   // ── Group by category ─────────────────────────────────────────
   const grouped = otherTests.reduce((acc, t) => {
-    const cat = t.category || 'Uncategorized'
+    const cat = t.category || 'Other'
     if (!acc[cat]) acc[cat] = []
     acc[cat].push(t)
     return acc

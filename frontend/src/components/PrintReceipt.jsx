@@ -1,9 +1,20 @@
 import { forwardRef } from 'react'
-import { groupSelectedTests } from '../data/labTests'
 
+// selectedTests: array of { id, name, category, sample_type, collection_container }
 const PrintReceipt = forwardRef(({ formData, selectedTests }, ref) => {
-  const grouped = groupSelectedTests(selectedTests)
+  // Group by category
+  const grouped = selectedTests.reduce((acc, t) => {
+    const cat = t.category || 'Other'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(t.name)
+    return acc
+  }, {})
   const categories = Object.entries(grouped)
+
+  // Deduplicated containers
+  const containers = [...new Set(
+    selectedTests.map(t => t.collection_container).filter(Boolean)
+  )]
 
   return (
     <div ref={ref} className="print-receipt bg-white"
@@ -85,14 +96,17 @@ const PrintReceipt = forwardRef(({ formData, selectedTests }, ref) => {
         </div>
       </div>
 
-      {/* Clinical Info & Signature */}
-      <div style={{ border: '1px solid #ccc', borderRadius: '4px', padding: '8px', marginBottom: '10px', fontSize: '10.5px' }}>
-        <div style={{ marginBottom: '4px' }}>
-          <strong>Clinical History:</strong> {formData.clinical_history || '—'}
+      {/* Containers Needed */}
+      {containers.length > 0 && (
+        <div style={{ border: '1.5px solid #e67e22', borderRadius: '4px', padding: '7px 10px', marginBottom: '10px', background: '#fffbf5', fontSize: '10.5px' }}>
+          <strong style={{ color: '#c0392b' }}>Containers Needed:</strong>{' '}
+          <span style={{ color: '#7d4a00' }}>{containers.join(', ')}</span>
         </div>
-        {formData.other_tests && (
-          <div><strong>Other Tests:</strong> {formData.other_tests}</div>
-        )}
+      )}
+
+      {/* Clinical Info */}
+      <div style={{ border: '1px solid #ccc', borderRadius: '4px', padding: '8px', marginBottom: '10px', fontSize: '10.5px' }}>
+        <div><strong>Clinical History:</strong> {formData.clinical_history || '—'}</div>
       </div>
 
       {/* Doctor Signature block */}

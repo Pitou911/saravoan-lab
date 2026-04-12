@@ -1,11 +1,10 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { LAB_TESTS, groupSelectedTests } from '../data/labTests'
 import api from '../api/axios'
 import {
   FlaskConical, LogOut, Printer, RotateCcw, CheckSquare,
   ChevronDown, ChevronUp, ClipboardList, User, Package,
-  Plus, Trash2, Search, X, BookMarked
+  Plus, Trash2, BookMarked,
 } from 'lucide-react'
 
 const today   = new Date().toISOString().split('T')[0]
@@ -14,45 +13,50 @@ const nowTime = new Date().toTimeString().slice(0, 5)
 const EMPTY_FORM = {
   patient_name: '', patient_telephone: '', date_of_birth: '',
   gender: '', patient_id: '', weight: '', request_date: today,
-  request_time: nowTime, clinical_history: '', doctor_name: '', other_tests: [],
+  request_time: nowTime, clinical_history: '', doctor_name: '',
+}
+
+// Group array of OtherTestOption objects by category
+function groupByCategory(tests) {
+  return tests.reduce((acc, t) => {
+    const cat = t.category || 'Other'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(t)
+    return acc
+  }, {})
 }
 
 export default function Dashboard() {
   const { user, logout } = useAuth()
 
-  const [formData, setFormData]           = useState({ ...EMPTY_FORM, doctor_name: user?.name || '' })
-  const [selectedTests, setSelected]      = useState([])
-  const [collapsed, setCollapsed]         = useState({})
-  const [activeTab, setActiveTab]         = useState('form')
-  const [history, setHistory]             = useState([])
-  const [loadingHist, setLoadingHist]     = useState(false)
-  const [actionMsg, setActionMsg]         = useState({ text: '', type: '' })
-  const [saving, setSaving]               = useState(false)
+  const [formData, setFormData]     = useState({ ...EMPTY_FORM, doctor_name: user?.name || '' })
+  // Each item: { id, name, category, sample_type, collection_container }
+  const [selectedTests, setSelected] = useState([])
+  const [collapsed, setCollapsed]   = useState({})
+  const [activeTab, setActiveTab]   = useState('form')
+  const [history, setHistory]       = useState([])
+  const [loadingHist, setLoadingHist] = useState(false)
+  const [actionMsg, setActionMsg]   = useState({ text: '', type: '' })
+  const [saving, setSaving]         = useState(false)
+
+  // All tests from API
+  const [allTests, setAllTests]         = useState([])
+  const [loadingTests, setLoadingTests] = useState(true)
 
   // Packages
-  const [packages, setPackages]           = useState([])
-  const [showSavePkg, setShowSavePkg]     = useState(false)
-  const [pkgName, setPkgName]             = useState('')
-  const [pkgDesc, setPkgDesc]             = useState('')
-  const [savingPkg, setSavingPkg]         = useState(false)
+  const [packages, setPackages]     = useState([])
+  const [showSavePkg, setShowSavePkg] = useState(false)
+  const [pkgName, setPkgName]       = useState('')
+  const [pkgDesc, setPkgDesc]       = useState('')
+  const [savingPkg, setSavingPkg]   = useState(false)
 
-  // Other tests
-  const [otherTestOptions, setOtherOpts]  = useState([])
-  const [otherSearch, setOtherSearch]     = useState('')
-  const [showOtherDrop, setShowOtherDrop] = useState(false)
-  const otherRef                          = useRef(null)
-
-  // ── Load other test options & packages on mount ────────────────
+  // ── Load all active tests & packages on mount ──────────────────
   useEffect(() => {
-    api.get('/other-tests').then(r => setOtherOpts(r.data)).catch(() => {})
+    api.get('/other-tests')
+      .then(r => setAllTests(r.data))
+      .catch(() => {})
+      .finally(() => setLoadingTests(false))
     api.get('/packages').then(r => setPackages(r.data)).catch(() => {})
-  }, [])
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handler = (e) => { if (otherRef.current && !otherRef.current.contains(e.target)) setShowOtherDrop(false) }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   const showMsg = (text, type = 'success') => {
@@ -60,39 +64,55 @@ export default function Dashboard() {
     setTimeout(() => setActionMsg({ text: '', type: '' }), 3000)
   }
 
-  // ── Other tests multi-select ───────────────────────────────────
-  const filteredOther = otherTestOptions.filter(o =>
-    o.name.toLowerCase().includes(otherSearch.toLowerCase()) ||
-    (o.category || '').toLowerCase().includes(otherSearch.toLowerCase())
-  )
+  // ── Test toggles ───────────────────────────────────────────────
+  const toggleTest = (opt) => {
+    setSelected(prev => {
+      const exists = prev.find(t => t.id === opt.id)
+      if (exists) return prev.filter(t => t.id !== opt.id)
+      return [...prev, {
+        id: opt.id,
+        name: opt.name,
+        category: opt.category || 'Other',
+        sample_type: opt.sample_type,
+        collection_container: opt.collection_container,
+      }]
+    })
+  }
 
-  const toggleOtherTest = (opt) => {
-    const exists = formData.other_tests.find(o => o.id === opt.id)
-    if (exists) {
-      setFormData(p => ({ ...p, other_tests: p.other_tests.filter(o => o.id !== opt.id) }))
+  const toggleCategory = (tests) => {
+    const allSel = tests.every(t => selectedTests.find(s => s.id === t.id))
+    if (allSel) {
+      const ids = tests.map(t => t.id)
+      setSelected(prev => prev.filter(t => !ids.includes(t.id)))
     } else {
-      setFormData(p => ({ ...p, other_tests: [...p.other_tests, { id: opt.id, name: opt.name, category: opt.category }] }))
+      const toAdd = tests
+        .filter(t => !selectedTests.find(s => s.id === t.id))
+        .map(t => ({
+          id: t.id,
+          name: t.name,
+          category: t.category || 'Other',
+          sample_type: t.sample_type,
+          collection_container: t.collection_container,
+        }))
+      setSelected(prev => [...prev, ...toAdd])
     }
   }
 
-  const removeOtherTest = (id) =>
-    setFormData(p => ({ ...p, other_tests: p.other_tests.filter(o => o.id !== id) }))
+  const isCatAll  = (tests) => tests.length > 0 && tests.every(t => selectedTests.find(s => s.id === t.id))
+  const isCatSome = (tests) => tests.some(t => selectedTests.find(s => s.id === t.id))
 
   // ── Save + Print combined ──────────────────────────────────────
   const handleSaveAndPrint = useCallback(async () => {
     if (!formData.patient_name.trim()) return showMsg('⚠ Patient name is required.', 'warn')
     if (!formData.doctor_name.trim())  return showMsg('⚠ Doctor name is required.', 'warn')
-    if (selectedTests.length === 0 && formData.other_tests.length === 0)
-      return showMsg('⚠ Please select at least one test.', 'warn')
+    if (selectedTests.length === 0)    return showMsg('⚠ Please select at least one test.', 'warn')
 
     setSaving(true)
-    const otherTestNames = formData.other_tests.map(o => o.name).join(', ')
 
-    // Save to DB
     try {
       await api.post('/lab-requests', {
         ...formData,
-        other_tests: otherTestNames,
+        other_tests: null,
         selected_tests: selectedTests,
       })
     } catch (err) {
@@ -102,70 +122,40 @@ export default function Dashboard() {
     }
     setSaving(false)
 
-    // Build print HTML
-    const grouped    = groupSelectedTests(selectedTests)
-    const categories = Object.entries(grouped)
+    // Group tests by category for print
+    const grouped    = selectedTests.reduce((acc, t) => {
+      const cat = t.category || 'Other'
+      if (!acc[cat]) acc[cat] = []
+      acc[cat].push(t.name)
+      return acc
+    }, {})
+    const categories  = Object.entries(grouped)
     const genderLabel = formData.gender === 'male' ? 'Male' : formData.gender === 'female' ? 'Female' : '—'
 
-    const labRows = categories.length === 0 ? '' : categories.map(([cat, tests]) => {
-      const count = tests.length
-      const borderStyle = 'border:2px solid #1a3a5c;'
-      const catCell = `<td rowspan="${count}" style="
-        padding:6px 10px;
-        ${borderStyle}
-        font-size:11px;
-        font-weight:700;
-        color:#1a3a5c;
-        vertical-align:middle;
-        text-align:center;
-        width:38%;
-        background:#f0f4f8;
-      ">${cat}</td>`
+    // Deduplicated containers from selected tests
+    const containers = [...new Set(
+      selectedTests.map(t => t.collection_container).filter(Boolean)
+    )]
 
+    const labRows = categories.map(([cat, tests]) => {
+      const count = tests.length
+      const bdr   = 'border:2px solid #1a3a5c;'
+      const catCell = `<td rowspan="${count}" style="
+        padding:6px 10px;${bdr}font-size:11px;font-weight:700;color:#1a3a5c;
+        vertical-align:middle;text-align:center;width:38%;background:#f0f4f8;
+      ">${cat}</td>`
       return tests.map((test, ti) => `
         <tr>
           ${ti === 0 ? catCell : ''}
-          <td style="
-            padding:4px 10px;
-            ${borderStyle}
-            font-size:11px;
-            color:#222;
-            background:${ti % 2 === 0 ? '#fff' : '#f9fbfd'};
-          ">${test}</td>
+          <td style="padding:4px 10px;${bdr}font-size:11px;color:#222;background:${ti % 2 === 0 ? '#fff' : '#f9fbfd'};">${test}</td>
         </tr>`
       ).join('')
     }).join('')
 
-    const otherRows = formData.other_tests.length === 0 ? '' : (() => {
-      const count = formData.other_tests.length
-      const borderStyle = 'border:2px solid #c0392b;'
-      const catCell = `<td rowspan="${count}" style="
-        padding:6px 10px;
-        ${borderStyle}
-        font-size:11px;
-        font-weight:700;
-        color:#c0392b;
-        vertical-align:middle;
-        text-align:center;
-        width:38%;
-        background:#fff5f5;
-      ">Other Tests</td>`
-
-      return formData.other_tests.map((o, i) => `
-        <tr>
-          ${i === 0 ? catCell : ''}
-          <td style="
-            padding:4px 10px;
-            ${borderStyle}
-            font-size:11px;
-            color:#222;
-            background:${i % 2 === 0 ? '#fff' : '#fff9f9'};
-          ">${o.name}</td>
-        </tr>`
-      ).join('')
-    })()
-
-    const totalTests = selectedTests.length + formData.other_tests.length
+    const containersHtml = containers.length > 0 ? `
+    <div class="container-box">
+      <strong>Containers Needed:</strong>&nbsp;${containers.join(', ')}
+    </div>` : ''
 
     const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/>
 <title>Lab Request — ${formData.patient_name || 'Patient'}</title>
@@ -186,6 +176,8 @@ thead tr{background:#1a3a5c;color:#fff;}
 thead th{padding:6px 10px;text-align:left;font-size:10.5px;font-weight:bold;border:2px solid #1a3a5c;}
 .summary{text-align:right;margin-bottom:11px;}
 .summary-badge{background:#1a3a5c;color:#fff;padding:3px 14px;border-radius:20px;font-size:10px;font-weight:bold;display:inline-block;}
+.container-box{border:1.5px solid #e67e22;border-radius:4px;padding:7px 11px;margin-bottom:11px;font-size:10.5px;background:#fffbf5;}
+.container-box strong{color:#c0392b;}
 .clinical-box{border:1px solid #c8d5e3;border-radius:4px;padding:9px 11px;margin-bottom:16px;font-size:10.5px;line-height:1.7;}
 .sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px;}
 .sig-line{border-bottom:1.5px solid #888;height:34px;padding-top:10px;font-size:10.5px;font-weight:600;color:#1a3a5c;padding-left:4px;}
@@ -216,9 +208,10 @@ thead th{padding:6px 10px;text-align:left;font-size:10.5px;font-weight:bold;bord
 </div>
 <table>
   <thead><tr><th style="width:38%">TEST CATEGORY</th><th>TEST ITEM</th></tr></thead>
-  <tbody>${labRows}${otherRows}${!labRows && !otherRows ? '<tr><td colspan="2" style="text-align:center;padding:12px;color:#999;">No tests selected</td></tr>' : ''}</tbody>
+  <tbody>${labRows || '<tr><td colspan="2" style="text-align:center;padding:12px;color:#999;">No tests selected</td></tr>'}</tbody>
 </table>
-<div class="summary"><span class="summary-badge">Total Tests: ${totalTests}</span></div>
+<div class="summary"><span class="summary-badge">Total Tests: ${selectedTests.length}</span></div>
+${containersHtml}
 <div class="clinical-box">
   <div><strong>Clinical History:</strong>&nbsp; ${formData.clinical_history || '—'}</div>
 </div>
@@ -228,7 +221,7 @@ thead th{padding:6px 10px;text-align:left;font-size:10.5px;font-weight:bold;bord
 </div>
 <div class="footer">Printed: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString()} &mdash; Saravoan Medical Laboratory</div>
 <script>
-window.onload=function(){window.focus();window.print();window.onafterprint=function(){window.close();};};
+window.onload=function(){window.focus();window.print();};
 </script>
 </body></html>`
 
@@ -241,10 +234,9 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
     printWindow.document.write(html)
     printWindow.document.close()
 
-    // Telegram notification
     api.post('/notify/print', {
       ...formData,
-      other_tests: otherTestNames,
+      other_tests: null,
       selected_tests: selectedTests,
       doctor_email: user?.email || '',
     }).catch(() => {})
@@ -282,20 +274,6 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
     } catch (_) {}
   }
 
-  // ── Test toggles ───────────────────────────────────────────────
-  const toggleTest = (key) =>
-    setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key])
-
-  const toggleCategory = (catKey) => {
-    const keys = LAB_TESTS[catKey].tests.map(t => `${catKey}::${t}`)
-    const all  = keys.every(k => selectedTests.includes(k))
-    if (all) setSelected(prev => prev.filter(k => !keys.includes(k)))
-    else     setSelected(prev => [...new Set([...prev, ...keys])])
-  }
-
-  const isCatAll  = (catKey) => LAB_TESTS[catKey].tests.every(t => selectedTests.includes(`${catKey}::${t}`))
-  const isCatSome = (catKey) => LAB_TESTS[catKey].tests.some(t => selectedTests.includes(`${catKey}::${t}`))
-
   // ── History ────────────────────────────────────────────────────
   const loadHistory = async () => {
     setLoadingHist(true)
@@ -320,7 +298,6 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
       request_time:      req.request_time || nowTime,
       clinical_history:  req.clinical_history || '',
       doctor_name:       req.doctor_name,
-      other_tests:       [],
     })
     setSelected(req.selected_tests || [])
     setActiveTab('form')
@@ -332,13 +309,22 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
     setActionMsg({ text: '', type: '' })
   }
 
-  const catEntries = Object.entries(LAB_TESTS)
-  const col1 = catEntries.slice(0, 7)
-  const col2 = catEntries.slice(7, 16)
-  const col3 = catEntries.slice(16, 22)
-  const col4 = catEntries.slice(22)
-  const grouped = groupSelectedTests(selectedTests)
-  const totalSelected = selectedTests.length + formData.other_tests.length
+  // ── Derived: build category columns from API ───────────────────
+  const catMap     = groupByCategory(allTests)
+  const catEntries = Object.entries(catMap)
+  const quarter    = Math.ceil(catEntries.length / 4)
+  const col1 = catEntries.slice(0, quarter)
+  const col2 = catEntries.slice(quarter, quarter * 2)
+  const col3 = catEntries.slice(quarter * 2, quarter * 3)
+  const col4 = catEntries.slice(quarter * 3)
+
+  // Preview: group selected by category
+  const previewGrouped = selectedTests.reduce((acc, t) => {
+    const cat = t.category || 'Other'
+    if (!acc[cat]) acc[cat] = []
+    acc[cat].push(t.name)
+    return acc
+  }, {})
 
   const msgColors = {
     success: 'bg-green-100 text-green-700',
@@ -373,9 +359,9 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
       <div className="sticky top-14 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-screen-2xl mx-auto px-4 flex">
           {[
-            { id: 'form',     label: 'New Request', icon: <ClipboardList size={14}/> },
+            { id: 'form',     label: 'New Request',   icon: <ClipboardList size={14}/> },
             { id: 'packages', label: 'Test Packages', icon: <BookMarked size={14}/> },
-            { id: 'history',  label: 'History',     icon: <CheckSquare size={14}/> },
+            { id: 'history',  label: 'History',       icon: <CheckSquare size={14}/> },
           ].map(tab => (
             <button key={tab.id} onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-1.5 px-5 py-3 text-sm font-medium border-b-2 transition ${
@@ -403,7 +389,7 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
                   { id: 'patient_name',      label: 'Patient Name *', type: 'text',   colSpan: true },
                   { id: 'patient_telephone', label: 'Telephone',       type: 'tel'   },
                   { id: 'patient_id',        label: 'Patient ID',      type: 'text'  },
-                  { id: 'date_of_birth', label: 'Age', type: 'number' },
+                  { id: 'date_of_birth',     label: 'Age',             type: 'number'},
                   { id: 'weight',            label: 'Weight (kg)',      type: 'number'},
                   { id: 'request_date',      label: 'Date *',           type: 'date'  },
                   { id: 'request_time',      label: 'Time',             type: 'time'  },
@@ -471,7 +457,7 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
                 </h2>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
-                    {totalSelected} selected
+                    {selectedTests.length} selected
                   </span>
                   {selectedTests.length > 0 && (
                     <button onClick={() => setSelected([])} className="text-xs text-red-500 hover:text-red-700 transition">
@@ -481,120 +467,59 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                {[col1, col2, col3, col4].map((col, ci) => (
-                  <div key={ci} className="space-y-2">
-                    {col.map(([catKey, cat]) => {
-                      const allSel  = isCatAll(catKey)
-                      const someSel = isCatSome(catKey)
-                      const open    = !collapsed[catKey]
-                      return (
-                        <div key={catKey} className="border border-gray-200 rounded-lg overflow-hidden">
-                          <div className="category-header flex items-center justify-between select-none">
-                            <div className="flex items-center gap-2 flex-1">
-                              <input type="checkbox" checked={allSel}
-                                ref={el => { if (el) el.indeterminate = someSel && !allSel }}
-                                onChange={() => toggleCategory(catKey)}
-                                className="test-checkbox" onClick={e => e.stopPropagation()} />
-                              <span className="cursor-pointer flex-1"
-                                onClick={() => setCollapsed(p => ({ ...p, [catKey]: !p[catKey] }))}>
-                                {cat.label}
+              {loadingTests ? (
+                <div className="text-center py-10 text-gray-400 text-sm">Loading tests…</div>
+              ) : allTests.length === 0 ? (
+                <div className="text-center py-10 text-gray-400 text-sm">
+                  No tests available yet. Ask the admin to add tests.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                  {[col1, col2, col3, col4].map((col, ci) => (
+                    <div key={ci} className="space-y-2">
+                      {col.map(([catName, tests]) => {
+                        const allSel  = isCatAll(tests)
+                        const someSel = isCatSome(tests)
+                        const open    = !collapsed[catName]
+                        return (
+                          <div key={catName} className="border border-gray-200 rounded-lg overflow-hidden">
+                            <div className="category-header flex items-center justify-between select-none">
+                              <div className="flex items-center gap-2 flex-1">
+                                <input type="checkbox" checked={allSel}
+                                  ref={el => { if (el) el.indeterminate = someSel && !allSel }}
+                                  onChange={() => toggleCategory(tests)}
+                                  className="test-checkbox" onClick={e => e.stopPropagation()} />
+                                <span className="cursor-pointer flex-1"
+                                  onClick={() => setCollapsed(p => ({ ...p, [catName]: !p[catName] }))}>
+                                  {catName}
+                                </span>
+                              </div>
+                              <span className="text-white/60 cursor-pointer"
+                                onClick={() => setCollapsed(p => ({ ...p, [catName]: !p[catName] }))}>
+                                {open ? <ChevronUp size={12}/> : <ChevronDown size={12}/>}
                               </span>
                             </div>
-                            <span className="text-white/60 cursor-pointer"
-                              onClick={() => setCollapsed(p => ({ ...p, [catKey]: !p[catKey] }))}>
-                              {open ? <ChevronUp size={12}/> : <ChevronDown size={12}/>}
-                            </span>
-                          </div>
-                          {open && (
-                            <div className="divide-y divide-gray-50">
-                              {cat.tests.map(test => {
-                                const key = `${catKey}::${test}`
-                                const sel = selectedTests.includes(key)
-                                return (
-                                  <label key={key}
-                                    className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer transition text-xs hover:bg-blue-50 ${sel ? 'bg-blue-50/70' : ''}`}>
-                                    <input type="checkbox" checked={sel} onChange={() => toggleTest(key)} className="test-checkbox flex-shrink-0" />
-                                    <span className={`leading-tight ${sel ? 'font-medium text-[#1a3a5c]' : 'text-gray-700'}`}>{test}</span>
-                                  </label>
-                                )
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                ))}
-              </div>
-
-              {/* ── Other Tests searchable dropdown ── */}
-              <div className="mt-4 border-t border-gray-100 pt-4" ref={otherRef}>
-                <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#c0392b' }}>
-                  Other Tests {otherTestOptions.length === 0 && <span className="text-gray-400 normal-case font-normal">(None added by admin yet)</span>}
-                </label>
-
-                {/* Selected tags */}
-                {formData.other_tests.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {formData.other_tests.map(o => (
-                      <span key={o.id} className="flex items-center gap-1 text-xs px-2 py-1 rounded-full font-medium text-white"
-                        style={{ background: '#c0392b' }}>
-                        {o.name}
-                        <button onClick={() => removeOtherTest(o.id)} className="hover:opacity-70 transition">
-                          <X size={11} />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                {/* Search input */}
-                {otherTestOptions.length > 0 && (
-                  <div className="relative">
-                    <div className="flex items-center border border-gray-200 rounded-lg px-3 py-1.5 gap-2 bg-white focus-within:ring-2 focus-within:ring-red-200">
-                      <Search size={13} className="text-gray-400 flex-shrink-0" />
-                      <input
-                        type="text"
-                        value={otherSearch}
-                        onChange={e => { setOtherSearch(e.target.value); setShowOtherDrop(true) }}
-                        onFocus={() => setShowOtherDrop(true)}
-                        placeholder="Search other tests…"
-                        className="flex-1 text-xs bg-transparent outline-none text-gray-700 placeholder-gray-400"
-                      />
-                      {otherSearch && (
-                        <button onClick={() => { setOtherSearch(''); setShowOtherDrop(false) }}>
-                          <X size={13} className="text-gray-400 hover:text-gray-600" />
-                        </button>
-                      )}
-                    </div>
-
-                    {showOtherDrop && filteredOther.length > 0 && (
-                      <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl max-h-52 overflow-y-auto">
-                        {filteredOther.map(opt => {
-                          const selected = formData.other_tests.find(o => o.id === opt.id)
-                          return (
-                            <button key={opt.id} onClick={() => toggleOtherTest(opt)}
-                              className={`w-full text-left px-3 py-2 text-xs hover:bg-red-50 transition flex items-center justify-between ${selected ? 'bg-red-50' : ''}`}>
-                              <div>
-                                <span className={`font-medium ${selected ? 'text-red-700' : 'text-gray-800'}`}>{opt.name}</span>
-                                {opt.category && <span className="ml-2 text-gray-400">{opt.category}</span>}
+                            {open && (
+                              <div className="divide-y divide-gray-50">
+                                {tests.map(test => {
+                                  const sel = selectedTests.find(t => t.id === test.id)
+                                  return (
+                                    <label key={test.id}
+                                      className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer transition text-xs hover:bg-blue-50 ${sel ? 'bg-blue-50/70' : ''}`}>
+                                      <input type="checkbox" checked={!!sel} onChange={() => toggleTest(test)} className="test-checkbox flex-shrink-0" />
+                                      <span className={`leading-tight ${sel ? 'font-medium text-[#1a3a5c]' : 'text-gray-700'}`}>{test.name}</span>
+                                    </label>
+                                  )
+                                })}
                               </div>
-                              {selected && <span className="text-red-500 font-bold">✓</span>}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
-
-                    {showOtherDrop && otherSearch && filteredOther.length === 0 && (
-                      <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl p-3 text-xs text-gray-400 text-center">
-                        No matches found
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Action Bar */}
@@ -610,14 +535,12 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
                   <RotateCcw size={14}/> Reset
                 </button>
 
-                {/* Save package button */}
                 <button onClick={() => setShowSavePkg(p => !p)}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg border-2 transition font-medium"
                   style={{ borderColor: '#1a3a5c', color: '#1a3a5c' }}>
                   <Package size={14}/> Save as Package
                 </button>
 
-                {/* Save + Print — single button */}
                 <button onClick={handleSaveAndPrint} disabled={saving}
                   className="flex items-center gap-1.5 px-5 py-2 text-sm rounded-lg text-white font-semibold transition hover:opacity-90 shadow-md disabled:opacity-60"
                   style={{ background: '#c0392b' }}>
@@ -664,7 +587,7 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
             )}
 
             {/* Preview */}
-            {totalSelected > 0 && (
+            {selectedTests.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
                 <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#1a3a5c' }}>
                   Selected Tests Preview
@@ -677,7 +600,7 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
                     </tr>
                   </thead>
                   <tbody>
-                    {Object.entries(grouped).map(([cat, tests], ci) =>
+                    {Object.entries(previewGrouped).map(([cat, tests], ci) =>
                       tests.map((test, ti) => (
                         <tr key={`${ci}-${ti}`} className={ti % 2 === 0 ? 'bg-white' : 'bg-blue-50/40'}>
                           <td className="px-4 py-1.5 border border-gray-100 text-xs font-semibold"
@@ -688,15 +611,6 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
                         </tr>
                       ))
                     )}
-                    {formData.other_tests.map((o, i) => (
-                      <tr key={`other-${i}`} className={i % 2 === 0 ? 'bg-white' : 'bg-red-50/30'}>
-                        <td className="px-4 py-1.5 border border-gray-100 text-xs font-semibold"
-                          style={{ color: i === 0 ? '#c0392b' : 'transparent' }}>
-                          {i === 0 ? 'Other Tests' : ''}
-                        </td>
-                        <td className="px-4 py-1.5 border border-gray-100 text-xs">{o.name}</td>
-                      </tr>
-                    ))}
                   </tbody>
                 </table>
               </div>
@@ -777,11 +691,10 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
                           </span>
                         </td>
                         <td className="px-3 py-2 text-xs">{req.doctor_name}</td>
-                        <td className="px-3 py-2">
+                        <td className="px-3 py-2 text-xs">
                           <button onClick={() => restoreRequest(req)}
-                            className="text-xs px-2.5 py-1 rounded text-white font-medium"
-                            style={{ background: '#1a3a5c' }}>
-                            Load & Print
+                            className="text-[#1a3a5c] hover:underline font-medium">
+                            Restore
                           </button>
                         </td>
                       </tr>
@@ -792,6 +705,7 @@ window.onload=function(){window.focus();window.print();window.onafterprint=funct
             )}
           </div>
         )}
+
       </div>
     </div>
   )

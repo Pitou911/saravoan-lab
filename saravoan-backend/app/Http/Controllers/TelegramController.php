@@ -67,13 +67,19 @@ class TelegramController extends Controller
         };
 
         // Group selected tests by category
+        // Each item is now an object: { id, name, category, sample_type, collection_container }
         $grouped = [];
-        foreach ($data['selected_tests'] as $key) {
-            $parts    = explode('::', $key, 2);
-            $catKey   = $parts[0] ?? 'Other';
-            $testName = $parts[1] ?? $key;
-            // Convert category key to readable label
-            $catLabel = ucwords(strtolower(str_replace('_', ' ', $catKey)));
+        foreach ($data['selected_tests'] as $test) {
+            if (is_array($test)) {
+                $catLabel = $test['category'] ?? 'Other';
+                $testName = $test['name']     ?? '—';
+            } else {
+                // Legacy string format: "CATKEY::TestName"
+                $parts    = explode('::', $test, 2);
+                $catKey   = $parts[0] ?? 'Other';
+                $testName = $parts[1] ?? $test;
+                $catLabel = ucwords(strtolower(str_replace('_', ' ', $catKey)));
+            }
             $grouped[$catLabel][] = $testName;
         }
 
