@@ -111,18 +111,20 @@ export default function AdminDashboard() {
   const [msg, setMsg]               = useState({ text: '', ok: true })
 
   // New test form
-  const [newName, setNewName]   = useState('')
-  const [newCat, setNewCat]     = useState('')
-  const [newSample, setNewSample]     = useState('')
+  const [newName, setNewName]           = useState('')
+  const [newCat, setNewCat]             = useState('')
+  const [newSample, setNewSample]       = useState('')
   const [newContainer, setNewContainer] = useState('')
-  const [adding, setAdding]     = useState(false)
+  const [newPrice, setNewPrice]         = useState('')
+  const [adding, setAdding]             = useState(false)
 
   // Edit state
-  const [editId, setEditId]           = useState(null)
-  const [editName, setEditName]       = useState('')
-  const [editCat, setEditCat]         = useState('')
-  const [editSample, setEditSample]   = useState('')
+  const [editId, setEditId]               = useState(null)
+  const [editName, setEditName]           = useState('')
+  const [editCat, setEditCat]             = useState('')
+  const [editSample, setEditSample]       = useState('')
   const [editContainer, setEditContainer] = useState('')
+  const [editPrice, setEditPrice]         = useState('')
 
   const showMsg = (text, ok = true) => {
     setMsg({ text, ok })
@@ -168,9 +170,10 @@ export default function AdminDashboard() {
         category:             newCat.trim() || 'Other',
         sample_type:          newSample || null,
         collection_container: newContainer || null,
+        price:                newPrice !== '' ? newPrice : null,
       })
       setOtherTests(p => [...p, r.data.data])
-      setNewName(''); setNewCat(''); setNewSample(''); setNewContainer('')
+      setNewName(''); setNewCat(''); setNewSample(''); setNewContainer(''); setNewPrice('')
       showMsg('✓ Test option added.')
     } catch (err) {
       showMsg('✗ ' + (err.response?.data?.errors?.name?.[0] || err.response?.data?.message || 'Failed.'), false)
@@ -192,6 +195,7 @@ export default function AdminDashboard() {
     setEditCat(test.category || '')
     setEditSample(test.sample_type || '')
     setEditContainer(test.collection_container || '')
+    setEditPrice(test.price != null ? String(test.price) : '')
   }
 
   // ── Save edit ─────────────────────────────────────────────────
@@ -202,6 +206,7 @@ export default function AdminDashboard() {
         category:             editCat.trim() || 'Other',
         sample_type:          editSample || null,
         collection_container: editContainer || null,
+        price:                editPrice !== '' ? editPrice : null,
       })
       setOtherTests(p => p.map(t => t.id === editId ? r.data.data : t))
       setEditId(null)
@@ -287,7 +292,7 @@ export default function AdminDashboard() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
                 {/* Test Name */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Test Name *</label>
@@ -329,6 +334,14 @@ export default function AdminDashboard() {
                     placeholder="Select or type..."
                   />
                 </div>
+
+                {/* Price */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Price ($)</label>
+                  <input type="number" min="0" step="0.01" value={newPrice} onChange={e => setNewPrice(e.target.value)}
+                    placeholder="e.g. 12.50"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/30 transition" />
+                </div>
               </div>
 
               <button onClick={handleAdd} disabled={adding || !newName.trim()}
@@ -366,7 +379,8 @@ export default function AdminDashboard() {
                           <div className="col-span-3">Test Name</div>
                           <div className="col-span-2">Category</div>
                           <div className="col-span-2">Sample Type</div>
-                          <div className="col-span-3">Collection Container</div>
+                          <div className="col-span-2">Container</div>
+                          <div className="col-span-1">Price</div>
                           <div className="col-span-2 text-right">Actions</div>
                         </div>
 
@@ -389,9 +403,14 @@ export default function AdminDashboard() {
                                   <SearchableSelect value={editSample} onChange={setEditSample}
                                     options={existingSamples} placeholder="Sample..." />
                                 </div>
-                                <div className="col-span-3">
+                                <div className="col-span-2">
                                   <SearchableSelect value={editContainer} onChange={setEditContainer}
                                     options={existingContainers} placeholder="Container..." />
+                                </div>
+                                <div className="col-span-1">
+                                  <input type="number" min="0" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)}
+                                    placeholder="0.00"
+                                    className="w-full border border-gray-200 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500" />
                                 </div>
                                 <div className="col-span-2 flex items-center justify-end gap-2">
                                   <button onClick={saveEdit} className="text-green-600 hover:text-green-800 transition"><Check size={15}/></button>
@@ -412,9 +431,14 @@ export default function AdminDashboard() {
                                     <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full">{test.sample_type}</span>
                                   ) : <span className="text-xs text-gray-300">—</span>}
                                 </div>
-                                <div className="col-span-3">
+                                <div className="col-span-2">
                                   {test.collection_container ? (
                                     <span className="text-xs bg-orange-50 text-orange-700 px-2 py-0.5 rounded-full">{test.collection_container}</span>
+                                  ) : <span className="text-xs text-gray-300">—</span>}
+                                </div>
+                                <div className="col-span-1">
+                                  {test.price != null ? (
+                                    <span className="text-xs font-semibold text-gray-700">${parseFloat(test.price).toFixed(2)}</span>
                                   ) : <span className="text-xs text-gray-300">—</span>}
                                 </div>
                                 <div className="col-span-2 flex items-center justify-end gap-2">

@@ -4,7 +4,7 @@ import api from '../api/axios'
 import {
   FlaskConical, LogOut, Printer, RotateCcw, CheckSquare,
   ChevronDown, ChevronUp, ClipboardList, User, Package,
-  Plus, Trash2, BookMarked,
+  Plus, Trash2, BookMarked, Receipt,
 } from 'lucide-react'
 
 const today   = new Date().toISOString().split('T')[0]
@@ -75,6 +75,7 @@ export default function Dashboard() {
         category: opt.category || 'Other',
         sample_type: opt.sample_type,
         collection_container: opt.collection_container,
+        price: opt.price,
       }]
     })
   }
@@ -93,6 +94,7 @@ export default function Dashboard() {
           category: t.category || 'Other',
           sample_type: t.sample_type,
           collection_container: t.collection_container,
+          price: t.price,
         }))
       setSelected(prev => [...prev, ...toAdd])
     }
@@ -243,6 +245,128 @@ window.onload=function(){window.focus();window.print();};
 
     showMsg('✓ Saved & printed successfully!', 'success')
   }, [formData, selectedTests, user])
+
+  // ── Print Invoice ──────────────────────────────────────────────
+  const handlePrintInvoice = useCallback(() => {
+    if (!formData.patient_name.trim()) return showMsg('⚠ Patient name is required.', 'warn')
+    if (selectedTests.length === 0)    return showMsg('⚠ Please select at least one test.', 'warn')
+
+    const genderLabel = formData.gender === 'male' ? 'Male' : formData.gender === 'female' ? 'Female' : '—'
+    const invoiceDate = new Date().toLocaleDateString('en-GB')
+    const invoiceNo   = 'INV-' + Date.now().toString().slice(-8)
+
+    const testsWithPrice = selectedTests.map(t => ({
+      ...t,
+      price: t.price != null ? parseFloat(t.price) : null,
+    }))
+    const total = testsWithPrice.reduce((sum, t) => sum + (t.price ?? 0), 0)
+    const hasAnyPrice = testsWithPrice.some(t => t.price != null)
+
+    const bdr = 'border:2px solid #1a3a5c;'
+
+    const rows = testsWithPrice.map((t, i) => `
+      <tr style="background:${i % 2 === 0 ? '#fff' : '#f5f8fc'}">
+        <td style="padding:5px 10px;${bdr}font-size:10.5px;">${t.name}</td>
+        ${hasAnyPrice ? `<td style="padding:5px 10px;${bdr}font-size:10.5px;text-align:right;">${t.price != null ? '$' + t.price.toFixed(2) : '—'}</td>` : ''}
+      </tr>`
+    ).join('')
+
+    const totalRow = hasAnyPrice ? `
+      <tr style="background:#1a3a5c;color:#fff;font-weight:bold;">
+        <td style="padding:6px 10px;${bdr}font-size:11px;text-align:right;">TOTAL</td>
+        <td style="padding:6px 10px;${bdr}font-size:11px;text-align:right;">$${total.toFixed(2)}</td>
+      </tr>` : ''
+
+    const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/>
+<title>Invoice — ${formData.patient_name || 'Patient'}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#111;background:#fff;padding:14mm 12mm;}
+.header{text-align:center;border-bottom:2.5px solid #1a3a5c;padding-bottom:9px;margin-bottom:11px;}
+.kh{font-size:15px;font-weight:bold;color:#1a3a5c;}
+.en{font-size:13px;font-weight:bold;color:#1a3a5c;margin-top:3px;}
+.sub{font-size:9.5px;color:#555;margin-top:2px;}
+.invoice-title{text-align:center;font-size:14px;font-weight:bold;color:#c0392b;letter-spacing:2px;margin:10px 0 14px;}
+.meta{display:flex;justify-content:space-between;margin-bottom:12px;font-size:10.5px;}
+.meta-left,.meta-right{line-height:1.8;}
+.meta strong{color:#1a3a5c;}
+.info-box{border:2px solid #1a3a5c;border-radius:4px;padding:9px 11px;margin-bottom:12px;background:#f7fafd;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 24px;}
+.info-grid div{font-size:10.5px;line-height:1.5;}
+.info-grid strong{color:#1a3a5c;}
+table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+thead tr{background:#1a3a5c;color:#fff;}
+thead th{padding:6px 10px;text-align:left;font-size:10.5px;font-weight:bold;border:2px solid #1a3a5c;}
+thead th.right{text-align:right;}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;}
+.sig-line{border-bottom:2px solid #555;height:34px;padding-top:10px;font-size:10.5px;font-weight:600;color:#1a3a5c;padding-left:4px;}
+.sig-label{font-size:9px;color:#777;margin-top:4px;}
+.footer{margin-top:18px;padding-top:8px;border-top:2px solid #1a3a5c;text-align:center;font-size:9px;color:#aaa;}
+.thank-you{text-align:center;font-size:11px;font-weight:bold;color:#1a3a5c;margin-top:14px;}
+@page{size:A4;margin:12mm;}
+@media print{body{padding:0;}}
+</style></head><body>
+<div class="header">
+  <div class="kh">មន្ទីរពិសោធន៍េវជ្ជសា្រស្តសារាវ័ន្ត</div>
+  <div class="en">SARAVOAN MEDICAL LABORATORY</div>
+  <div class="sub">TEL: +855 12 855 932 &nbsp;|&nbsp; +855 16 855 932</div>
+  <div class="sub">Email: info@sml.com.kh &nbsp;|&nbsp; Website: www.sml.com.kh</div>
+  <div class="sub">No 133, St 19, Chey Chumneah, Daun Penh, Phnom Penh, CAMBODIA</div>
+</div>
+<div class="invoice-title">INVOICE</div>
+<div class="meta">
+  <div class="meta-left">
+    <div><strong>Invoice No:</strong> ${invoiceNo}</div>
+    <div><strong>Date:</strong> ${invoiceDate}</div>
+    <div><strong>Doctor:</strong> ${formData.doctor_name || '—'}</div>
+  </div>
+  <div class="meta-right" style="text-align:right;">
+    <div><strong>Saravoan Medical Laboratory</strong></div>
+    <div style="font-size:9.5px;color:#555;">No 133, St 19, Daun Penh, Phnom Penh</div>
+    <div style="font-size:9.5px;color:#555;">TEL: +855 12 855 932</div>
+  </div>
+</div>
+<div class="info-box">
+  <div class="info-grid">
+    <div><strong>Patient Name:</strong>&nbsp; ${formData.patient_name || '—'}</div>
+    <div><strong>ID:</strong>&nbsp; ${formData.patient_id || '—'}</div>
+    <div><strong>Telephone:</strong>&nbsp; ${formData.patient_telephone || '—'}</div>
+    <div><strong>Gender:</strong>&nbsp; ${genderLabel}</div>
+    <div><strong>Date of Birth:</strong>&nbsp; ${formData.date_of_birth ? formData.date_of_birth + ' years old' : '—'}</div>
+    <div><strong>Weight:</strong>&nbsp; ${formData.weight ? formData.weight + ' kg' : '—'}</div>
+  </div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>TEST ITEM</th>
+      ${hasAnyPrice ? '<th class="right" style="width:24%">PRICE</th>' : ''}
+    </tr>
+  </thead>
+  <tbody>
+    ${rows}
+    ${totalRow}
+  </tbody>
+</table>
+<div class="thank-you">Thank you for choosing Saravoan Medical Laboratory</div>
+<div class="sig-grid">
+  <div><div class="sig-line"></div><div class="sig-label">Patient / Guardian Signature</div></div>
+  <div><div class="sig-line">${formData.doctor_name || ''}</div><div class="sig-label">Authorized By</div></div>
+</div>
+<div class="footer">Printed: ${new Date().toLocaleDateString('en-GB')} ${new Date().toLocaleTimeString()} &mdash; Saravoan Medical Laboratory</div>
+<script>
+window.onload=function(){window.focus();window.print();};
+</script>
+</body></html>`
+
+    const w = window.open('', '_blank')
+    if (!w) {
+      alert('⚠ Pop-ups are blocked! Please allow pop-ups for this site.')
+      return
+    }
+    w.document.write(html)
+    w.document.close()
+  }, [formData, selectedTests])
 
   // ── Save Package ───────────────────────────────────────────────
   const handleSavePackage = async () => {
@@ -539,6 +663,12 @@ window.onload=function(){window.focus();window.print();};
                   className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg border-2 transition font-medium"
                   style={{ borderColor: '#1a3a5c', color: '#1a3a5c' }}>
                   <Package size={14}/> Save as Package
+                </button>
+
+                <button onClick={handlePrintInvoice}
+                  className="flex items-center gap-1.5 px-5 py-2 text-sm rounded-lg text-white font-semibold transition hover:opacity-90 shadow-md"
+                  style={{ background: '#16a085' }}>
+                  <Receipt size={15}/> Print Invoice
                 </button>
 
                 <button onClick={handleSaveAndPrint} disabled={saving}

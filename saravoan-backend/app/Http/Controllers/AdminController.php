@@ -47,6 +47,7 @@ class AdminController extends Controller
         'category'             => 'nullable|string|max:100',
         'sample_type'          => 'nullable|string|max:100',
         'collection_container' => 'nullable|string|max:100',
+        'price'                => 'nullable|numeric|min:0',
     ]);
 
     $option = OtherTestOption::create([...$validated, 'is_active' => true]);
@@ -68,6 +69,7 @@ class AdminController extends Controller
         'category'             => 'nullable|string|max:100',
         'sample_type'          => 'nullable|string|max:100',
         'collection_container' => 'nullable|string|max:100',
+        'price'                => 'nullable|numeric|min:0',
         'is_active'            => 'sometimes|boolean',
     ]);
 
