@@ -450,6 +450,9 @@ window.onload=function(){window.focus();window.print();};
     return acc
   }, {})
 
+  const totalPrice = selectedTests.reduce((sum, t) => sum + (t.price != null ? parseFloat(t.price) : 0), 0)
+  const hasPrices  = selectedTests.some(t => t.price != null)
+
   const msgColors = {
     success: 'bg-green-100 text-green-700',
     error:   'bg-red-100 text-red-700',
@@ -583,6 +586,11 @@ window.onload=function(){window.focus();window.print();};
                   <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
                     {selectedTests.length} selected
                   </span>
+                  {hasPrices && (
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ background: '#16a085' }}>
+                      Total: ${totalPrice.toFixed(2)}
+                    </span>
+                  )}
                   {selectedTests.length > 0 && (
                     <button onClick={() => setSelected([])} className="text-xs text-red-500 hover:text-red-700 transition">
                       Clear all
@@ -727,19 +735,34 @@ window.onload=function(){window.focus();window.print();};
                     <tr style={{ background: '#1a3a5c', color: 'white' }}>
                       <th className="text-left px-4 py-2 text-xs font-semibold w-2/5">Test Category</th>
                       <th className="text-left px-4 py-2 text-xs font-semibold">Test Item</th>
+                      {hasPrices && <th className="text-right px-4 py-2 text-xs font-semibold w-24">Price</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {Object.entries(previewGrouped).map(([cat, tests], ci) =>
-                      tests.map((test, ti) => (
-                        <tr key={`${ci}-${ti}`} className={ti % 2 === 0 ? 'bg-white' : 'bg-blue-50/40'}>
-                          <td className="px-4 py-1.5 border border-gray-100 text-xs font-semibold"
-                            style={{ color: ti === 0 ? '#1a3a5c' : 'transparent' }}>
-                            {ti === 0 ? cat : ''}
-                          </td>
-                          <td className="px-4 py-1.5 border border-gray-100 text-xs">{test}</td>
-                        </tr>
-                      ))
+                      tests.map((test, ti) => {
+                        const testObj = selectedTests.find(t => t.name === test && (t.category || 'Other') === cat)
+                        return (
+                          <tr key={`${ci}-${ti}`} className={ti % 2 === 0 ? 'bg-white' : 'bg-blue-50/40'}>
+                            <td className="px-4 py-1.5 border border-gray-100 text-xs font-semibold"
+                              style={{ color: ti === 0 ? '#1a3a5c' : 'transparent' }}>
+                              {ti === 0 ? cat : ''}
+                            </td>
+                            <td className="px-4 py-1.5 border border-gray-100 text-xs">{test}</td>
+                            {hasPrices && (
+                              <td className="px-4 py-1.5 border border-gray-100 text-xs text-right text-gray-600">
+                                {testObj?.price != null ? '$' + parseFloat(testObj.price).toFixed(2) : '—'}
+                              </td>
+                            )}
+                          </tr>
+                        )
+                      })
+                    )}
+                    {hasPrices && (
+                      <tr style={{ background: '#1a3a5c', color: 'white' }}>
+                        <td colSpan={2} className="px-4 py-2 text-xs font-bold text-right">TOTAL</td>
+                        <td className="px-4 py-2 text-xs font-bold text-right">${totalPrice.toFixed(2)}</td>
+                      </tr>
                     )}
                   </tbody>
                 </table>
