@@ -3,6 +3,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PrintLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
@@ -35,6 +36,14 @@ class TelegramController extends Controller
             'doctor_email'      => 'nullable|string',
         ]);
 
+        // Log the action regardless of Telegram success
+        PrintLog::create([
+            'doctor_id'   => $request->user()->id,
+            'tests'       => $validated['selected_tests'],
+            'patient_name'=> $validated['patient_name'],
+            'action_type' => 'lab_request',
+        ]);
+
         $message = $this->buildMessage($validated);
 
         $response = Http::withoutVerifying()->post("https://api.telegram.org/bot{$this->botToken}/sendMessage", [
@@ -55,6 +64,23 @@ class TelegramController extends Controller
             'success' => true,
             'message' => 'Telegram notification sent.',
         ]);
+    }
+
+    public function logInvoicePrint(Request $request)
+    {
+        $validated = $request->validate([
+            'patient_name'   => 'required|string',
+            'selected_tests' => 'required|array',
+        ]);
+
+        PrintLog::create([
+            'doctor_id'    => $request->user()->id,
+            'tests'        => $validated['selected_tests'],
+            'patient_name' => $validated['patient_name'],
+            'action_type'  => 'invoice',
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     private function buildMessage(array $data): string

@@ -4,6 +4,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OtherTestOption;
+use App\Models\PrintLog;
 use App\Models\User;
 use App\Models\LabRequest;
 use Illuminate\Http\Request;
@@ -121,6 +122,19 @@ class AdminController extends Controller
                 ->withCount('labRequests')
                 ->orderBy('name')
                 ->get(['id', 'name', 'email', 'created_at'])
+        );
+    }
+
+    // ── Activity log ───────────────────────────────────────────────
+    public function activityLogs(Request $request)
+    {
+        $this->requireAdmin($request);
+
+        return response()->json(
+            PrintLog::with('doctor:id,name,email')
+                ->orderBy('created_at', 'desc')
+                ->limit(300)
+                ->get()
         );
     }
 

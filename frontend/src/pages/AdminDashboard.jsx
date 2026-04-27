@@ -4,7 +4,7 @@ import api from '../api/axios'
 import {
   ShieldCheck, LogOut, Plus, Trash2, Edit2, Check,
   X, Users, FlaskConical, ClipboardList, ToggleLeft,
-  ToggleRight, ChevronDown, Search
+  ToggleRight, ChevronDown, Search, Activity, RefreshCw
 } from 'lucide-react'
 
 // ── Searchable creatable dropdown ──────────────────────────────
@@ -110,6 +110,11 @@ export default function AdminDashboard() {
   const [loading, setLoading]       = useState(false)
   const [msg, setMsg]               = useState({ text: '', ok: true })
 
+  // Activity log
+  const [activityLogs, setActivityLogs]       = useState([])
+  const [loadingActivity, setLoadingActivity] = useState(false)
+  const [activityFilter, setActivityFilter]   = useState('all')
+
   // New test form
   const [newName, setNewName]           = useState('')
   const [newCat, setNewCat]             = useState('')
@@ -135,6 +140,7 @@ export default function AdminDashboard() {
     if (activeTab === 'other-tests') loadOtherTests()
     if (activeTab === 'doctors')     loadDoctors()
     if (activeTab === 'stats')       loadStats()
+    if (activeTab === 'activity')    loadActivity()
   }, [activeTab])
 
   const loadOtherTests = async () => {
@@ -154,6 +160,16 @@ export default function AdminDashboard() {
     try { const r = await api.get('/admin/stats'); setStats(r.data) } catch (_) {}
     finally { setLoading(false) }
   }
+
+  const loadActivity = async () => {
+    setLoadingActivity(true)
+    try { const r = await api.get('/admin/activity'); setActivityLogs(r.data) } catch (_) {}
+    finally { setLoadingActivity(false) }
+  }
+
+  const filteredActivity = activityFilter === 'all'
+    ? activityLogs
+    : activityLogs.filter(l => l.action_type === activityFilter)
 
   // ── Collect unique existing values for dropdown suggestions ───
   const existingCategories  = [...new Set(['Other', ...otherTests.map(t => t.category).filter(Boolean)])]
@@ -237,7 +253,8 @@ export default function AdminDashboard() {
   const tabs = [
     { id: 'other-tests', label: 'Other Test Options', icon: <FlaskConical size={14}/> },
     { id: 'doctors',     label: 'Doctors',             icon: <Users size={14}/> },
-    { id: 'stats',       label: 'Overview',             icon: <ClipboardList size={14}/> },
+    { id: 'stats',       label: 'Overview',            icon: <ClipboardList size={14}/> },
+    { id: 'activity',    label: 'Activity Log',        icon: <Activity size={14}/> },
   ]
 
   return (
@@ -498,6 +515,100 @@ export default function AdminDashboard() {
                   ))}
                 </tbody>
               </table>
+            )}
+          </div>
+        )}
+
+        {/* ── ACTIVITY LOG TAB ── */}
+        {activeTab === 'activity' && (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#1a3a5c' }}>
+                Doctor Activity Log
+              </h2>
+              <div className="flex items-center gap-3">
+                <select
+                  value={activityFilter}
+                  onChange={e => setActivityFilter(e.target.value)}
+                  className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none bg-white text-gray-700">
+                  <option value="all">All Actions</option>
+                  <option value="lab_request">Lab Requests only</option>
+                  <option value="invoice">Invoices only</option>
+                </select>
+                <button
+                  onClick={loadActivity}
+                  className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition">
+                  <RefreshCw size={12}/> Refresh
+                </button>
+              </div>
+            </div>
+
+            {loadingActivity ? (
+              <div className="text-center py-10 text-gray-400 text-sm">Loading…</div>
+            ) : filteredActivity.length === 0 ? (
+              <div className="text-center py-10 text-gray-400 text-sm">
+                <Activity size={32} className="mx-auto mb-3 opacity-20"/>
+                <p>No activity recorded yet.</p>
+                <p className="text-xs mt-1">Activity is logged whenever a doctor prints a lab request or invoice.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ background: '#1a3a5c', color: 'white' }}>
+                      {['Date & Time', 'Doctor', 'Patient', 'Action', 'Tests'].map(h => (
+                        <th key={h} className="text-left px-3 py-2.5 text-xs font-semibold">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredActivity.map((log, i) => {
+                      const testNames = log.tests
+                        ?.map(t => typeof t === 'object' ? t.name : t)
+                        .join(', ') || '—'
+                      const truncated = testNames.length > 55
+                        ? testNames.slice(0, 55) + '…'
+                        : testNames
+                      const dt    = new Date(log.created_at)
+                      const dtStr = dt.toLocaleDateString('en-GB') + ' '
+                        + dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                      return (
+                        <tr key={log.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                          <td className="px-3 py-2.5 text-xs text-gray-500 whitespace-nowrap">{dtStr}</td>
+                          <td className="px-3 py-2.5 text-xs font-medium text-gray-800">
+                            {log.doctor?.name || '—'}
+                          </td>
+                          <td className="px-3 py-2.5 text-xs text-gray-700">
+                            {log.patient_name || '—'}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            {log.action_type === 'invoice' ? (
+                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full text-white"
+                                style={{ background: '#16a085' }}>
+                                Invoice
+                              </span>
+                            ) : (
+                              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full text-white"
+                                style={{ background: '#c0392b' }}>
+                                Lab Request
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5 text-xs text-gray-600">
+                            <span className="bg-blue-100 text-blue-700 rounded-full px-2 py-0.5 font-semibold text-xs mr-1.5">
+                              {log.tests?.length || 0}
+                            </span>
+                            {truncated}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+                <p className="text-xs text-gray-400 mt-3 text-right">
+                  Showing {filteredActivity.length} record{filteredActivity.length !== 1 ? 's' : ''}
+                </p>
+              </div>
             )}
           </div>
         )}

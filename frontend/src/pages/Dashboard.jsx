@@ -366,6 +366,11 @@ window.onload=function(){window.focus();window.print();};
     }
     w.document.write(html)
     w.document.close()
+
+    api.post('/log/invoice', {
+      patient_name: formData.patient_name,
+      selected_tests: selectedTests,
+    }).catch(() => {})
   }, [formData, selectedTests])
 
   // ── Save Package ───────────────────────────────────────────────

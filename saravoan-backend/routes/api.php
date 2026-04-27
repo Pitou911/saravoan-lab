@@ -23,8 +23,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/lab-requests/{id}',       [LabRequestController::class, 'show']);
     Route::delete('/lab-requests/{id}',    [LabRequestController::class, 'destroy']);
 
-    // Telegram
+    // Telegram / print logging
     Route::post('/notify/print',           [TelegramController::class, 'sendPrintNotification']);
+    Route::post('/log/invoice',            [TelegramController::class, 'logInvoicePrint']);
 
     // Test packages
     Route::get('/packages',                [TestPackageController::class, 'index']);
@@ -37,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ── Admin only ──────────────────────────────────────────────
     Route::prefix('admin')->group(function () {
         Route::get('/stats',               [AdminController::class, 'stats']);
+        Route::get('/activity',            [AdminController::class, 'activityLogs']);
         Route::get('/doctors',             [AdminController::class, 'doctors']);
         Route::get('/requests',            [AdminController::class, 'allRequests']);
         Route::post('/admins',             [AdminController::class, 'createAdmin']);

@@ -9,10 +9,16 @@ class PrintLog extends Model
     protected $fillable = [
         'doctor_id',
         'tests',
-        'patient_name'
+        'patient_name',
+        'action_type',
     ];
 
     protected $casts = [
-        'tests' => 'array'
+        'tests' => 'array',
     ];
+
+    public function doctor()
+    {
+        return $this->belongsTo(User::class, 'doctor_id');
+    }
 }
