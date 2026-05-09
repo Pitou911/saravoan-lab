@@ -258,9 +258,9 @@ export default function AdminDashboard() {
   ]
 
   return (
-    <div className="min-h-screen" style={{ background: '#f0f4f8' }}>
+    <div className="min-h-screen" style={{ background: '#f0f6ff' }}>
       {/* Nav */}
-      <nav className="sticky top-0 z-50 shadow-md" style={{ background: '#1a3a5c' }}>
+      <nav className="sticky top-0 z-50 shadow-md" style={{ background: '#033c93' }}>
         <div className="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <ShieldCheck size={18} className="text-white"/>
@@ -284,7 +284,7 @@ export default function AdminDashboard() {
           {tabs.map(tab => (
             <button key={tab.id} onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-5 py-3 text-sm font-medium border-b-2 transition ${
-                activeTab === tab.id ? 'border-[#1a3a5c] text-[#1a3a5c]' : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === tab.id ? 'border-[#096abc] text-[#096abc]' : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}>
               {tab.icon}{tab.label}
             </button>
@@ -299,7 +299,7 @@ export default function AdminDashboard() {
           <>
             {/* Add form */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#1a3a5c' }}>
+              <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#096abc' }}>
                 Add New Other Test Option
               </h2>
 
@@ -363,7 +363,7 @@ export default function AdminDashboard() {
 
               <button onClick={handleAdd} disabled={adding || !newName.trim()}
                 className="mt-4 flex items-center gap-1.5 px-5 py-2 text-sm rounded-lg text-white font-medium disabled:opacity-50 transition"
-                style={{ background: '#1a3a5c' }}>
+                style={{ background: '#096abc' }}>
                 <Plus size={15}/> {adding ? 'Adding…' : 'Add Test Option'}
               </button>
             </div>
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
             {/* Test list */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#1a3a5c' }}>
+                <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#096abc' }}>
                   All Other Test Options
                 </h2>
                 <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
@@ -460,7 +460,7 @@ export default function AdminDashboard() {
                                 </div>
                                 <div className="col-span-2 flex items-center justify-end gap-2">
                                   <button onClick={() => handleToggle(test)} title={test.is_active ? 'Deactivate' : 'Activate'}
-                                    style={{ color: test.is_active ? '#1a3a5c' : '#ccc' }}>
+                                    style={{ color: test.is_active ? '#096abc' : '#ccc' }}>
                                     {test.is_active ? <ToggleRight size={18}/> : <ToggleLeft size={18}/>}
                                   </button>
                                   <button onClick={() => startEdit(test)} className="text-gray-400 hover:text-blue-600 transition"><Edit2 size={14}/></button>
@@ -482,7 +482,7 @@ export default function AdminDashboard() {
         {/* ── DOCTORS TAB ── */}
         {activeTab === 'doctors' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#1a3a5c' }}>
+            <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#096abc' }}>
               Registered Doctors
             </h2>
             {loading ? (
@@ -492,7 +492,7 @@ export default function AdminDashboard() {
             ) : (
               <table className="w-full text-sm">
                 <thead>
-                  <tr style={{ background: '#1a3a5c', color: 'white' }}>
+                  <tr style={{ background: '#096abc', color: 'white' }}>
                     {['Name','Email','Total Requests','Joined'].map(h => (
                       <th key={h} className="text-left px-4 py-2.5 text-xs font-semibold">{h}</th>
                     ))}
@@ -523,7 +523,7 @@ export default function AdminDashboard() {
         {activeTab === 'activity' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#1a3a5c' }}>
+              <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#096abc' }}>
                 Doctor Activity Log
               </h2>
               <div className="flex items-center gap-3">
@@ -555,7 +555,7 @@ export default function AdminDashboard() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr style={{ background: '#1a3a5c', color: 'white' }}>
+                    <tr style={{ background: '#096abc', color: 'white' }}>
                       {['Date & Time', 'Doctor', 'Patient', 'Action', 'Tests'].map(h => (
                         <th key={h} className="text-left px-3 py-2.5 text-xs font-semibold">{h}</th>
                       ))}
@@ -584,7 +584,7 @@ export default function AdminDashboard() {
                           <td className="px-3 py-2.5">
                             {log.action_type === 'invoice' ? (
                               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full text-white"
-                                style={{ background: '#16a085' }}>
+                                style={{ background: '#096abc' }}>
                                 Invoice
                               </span>
                             ) : (
@@ -621,10 +621,10 @@ export default function AdminDashboard() {
             ) : stats ? (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  { label: 'Total Doctors',      value: stats.total_doctors,  color: '#1a3a5c' },
-                  { label: 'Total Requests',     value: stats.total_requests, color: '#2980b9' },
-                  { label: "Today's Requests",   value: stats.today_requests, color: '#c0392b' },
-                  { label: 'Other Test Options', value: stats.other_tests,    color: '#16a085' },
+                  { label: 'Total Doctors',      value: stats.total_doctors,  color: '#033c93' },
+                  { label: 'Total Requests',     value: stats.total_requests, color: '#096abc' },
+                  { label: "Today's Requests",   value: stats.today_requests, color: '#4cb6eb' },
+                  { label: 'Other Test Options', value: stats.other_tests,    color: '#033c93' },
                 ].map(s => (
                   <div key={s.label} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
                     <div className="text-3xl font-bold mb-1" style={{ color: s.color }}>{s.value}</div>

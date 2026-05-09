@@ -30,15 +30,15 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: 'linear-gradient(135deg, #1a3a5c 0%, #0f2240 60%, #c0392b 100%)' }}>
+      style={{ background: 'linear-gradient(135deg, #033c93 0%, #096abc 60%, #4cb6eb 100%)' }}>
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="flex items-center gap-2 mb-6">
-            <FlaskConical size={22} style={{ color: '#1a3a5c' }} />
-            <span className="font-bold text-sm" style={{ color: '#1a3a5c' }}>Saravoan Medical Laboratory</span>
+            <FlaskConical size={22} style={{ color: '#096abc' }} />
+            <span className="font-bold text-sm" style={{ color: '#096abc' }}>Saravoan Medical Laboratory</span>
           </div>
 
-          <h2 className="text-2xl font-bold mb-1" style={{ color: '#1a3a5c' }}>Create Account</h2>
+          <h2 className="text-2xl font-bold mb-1" style={{ color: '#096abc' }}>Create Account</h2>
           <p className="text-sm text-gray-500 mb-7">Register as a doctor</p>
 
           {errors.general && (
@@ -76,14 +76,14 @@ export default function Register() {
 
             <button type="submit" disabled={loading}
               className="w-full py-2.5 rounded-lg text-white font-semibold text-sm transition disabled:opacity-60 mt-2"
-              style={{ background: loading ? '#7a9bb8' : '#1a3a5c' }}>
+              style={{ background: loading ? '#4cb6eb' : '#096abc' }}>
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="font-semibold hover:underline" style={{ color: '#c0392b' }}>Sign in</Link>
+            <Link to="/login" className="font-semibold hover:underline" style={{ color: '#096abc' }}>Sign in</Link>
           </p>
         </div>
       </div>

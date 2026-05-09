@@ -32,20 +32,20 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: 'linear-gradient(135deg, #0f2240 0%, #1a3a5c 50%, #2c3e50 100%)' }}>
+      style={{ background: 'linear-gradient(135deg, #022d6e 0%, #033c93 50%, #096abc 100%)' }}>
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-2xl p-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#1a3a5c' }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: '#033c93' }}>
               <ShieldCheck size={20} className="text-white" />
             </div>
             <div>
-              <div className="font-bold text-sm" style={{ color: '#1a3a5c' }}>Admin Portal</div>
+              <div className="font-bold text-sm" style={{ color: '#096abc' }}>Admin Portal</div>
               <div className="text-xs text-gray-400">Saravoan Medical Laboratory</div>
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold mb-1" style={{ color: '#1a3a5c' }}>Admin Login</h2>
+          <h2 className="text-2xl font-bold mb-1" style={{ color: '#096abc' }}>Admin Login</h2>
           <p className="text-sm text-gray-500 mb-7">Restricted access — administrators only</p>
 
           {error && (
@@ -78,7 +78,7 @@ export default function AdminLogin() {
             </div>
             <button type="submit" disabled={loading}
               className="w-full py-2.5 rounded-lg text-white font-semibold text-sm transition disabled:opacity-60"
-              style={{ background: loading ? '#7a9bb8' : '#1a3a5c' }}>
+              style={{ background: loading ? '#4cb6eb' : '#096abc' }}>
               {loading ? 'Signing in...' : 'Sign In as Admin'}
             </button>
           </form>

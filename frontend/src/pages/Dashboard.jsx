@@ -465,9 +465,9 @@ window.onload=function(){window.focus();window.print();};
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#f0f4f8' }}>
+    <div className="min-h-screen" style={{ background: '#f0f6ff' }}>
       {/* Nav */}
-      <nav className="sticky top-0 z-50 shadow-md" style={{ background: '#1a3a5c' }}>
+      <nav className="sticky top-0 z-50 shadow-md" style={{ background: '#033c93' }}>
         <div className="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <FlaskConical size={20} className="text-white" />
@@ -497,7 +497,7 @@ window.onload=function(){window.focus();window.print();};
           ].map(tab => (
             <button key={tab.id} onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-1.5 px-5 py-3 text-sm font-medium border-b-2 transition ${
-                activeTab === tab.id ? 'border-[#1a3a5c] text-[#1a3a5c]' : 'border-transparent text-gray-500 hover:text-gray-700'
+                activeTab === tab.id ? 'border-[#096abc] text-[#096abc]' : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}>
               {tab.icon}{tab.label}
             </button>
@@ -513,7 +513,7 @@ window.onload=function(){window.focus();window.print();};
 
             {/* Patient Info */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-              <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#1a3a5c' }}>
+              <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#096abc' }}>
                 Patient Information
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-3">
@@ -540,7 +540,7 @@ window.onload=function(){window.focus();window.print();};
                       <label key={g} className="flex items-center gap-1.5 cursor-pointer text-sm">
                         <input type="radio" name="gender" value={g} checked={formData.gender === g}
                           onChange={e => setFormData(p => ({ ...p, gender: e.target.value }))}
-                          className="accent-[#1a3a5c]" />
+                          className="accent-[#096abc]" />
                         <span className="capitalize">{g}</span>
                       </label>
                     ))}
@@ -567,13 +567,13 @@ window.onload=function(){window.focus();window.print();};
             {packages.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <Package size={14} style={{ color: '#1a3a5c' }} />
-                  <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#1a3a5c' }}>Quick Load Package</h2>
+                  <Package size={14} style={{ color: '#096abc' }} />
+                  <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#096abc' }}>Quick Load Package</h2>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {packages.map(pkg => (
                     <button key={pkg.id} onClick={() => loadPackage(pkg)}
-                      className="text-xs px-3 py-1.5 rounded-lg border-2 border-[#1a3a5c]/20 hover:border-[#1a3a5c] hover:bg-blue-50 transition font-medium text-[#1a3a5c]">
+                      className="text-xs px-3 py-1.5 rounded-lg border-2 border-[#096abc]/20 hover:border-[#096abc] hover:bg-blue-50 transition font-medium text-[#096abc]">
                       {pkg.name} <span className="text-gray-400">({pkg.selected_tests?.length || 0})</span>
                     </button>
                   ))}
@@ -584,7 +584,7 @@ window.onload=function(){window.focus();window.print();};
             {/* Tests grid */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#1a3a5c' }}>
+                <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: '#096abc' }}>
                   Select Laboratory Tests
                 </h2>
                 <div className="flex items-center gap-3">
@@ -592,7 +592,7 @@ window.onload=function(){window.focus();window.print();};
                     {selectedTests.length} selected
                   </span>
                   {hasPrices && (
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ background: '#16a085' }}>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full text-white" style={{ background: '#096abc' }}>
                       Total: ${totalPrice.toFixed(2)}
                     </span>
                   )}
@@ -644,7 +644,7 @@ window.onload=function(){window.focus();window.print();};
                                     <label key={test.id}
                                       className={`flex items-center gap-2 px-2.5 py-1.5 cursor-pointer transition text-xs hover:bg-blue-50 ${sel ? 'bg-blue-50/70' : ''}`}>
                                       <input type="checkbox" checked={!!sel} onChange={() => toggleTest(test)} className="test-checkbox flex-shrink-0" />
-                                      <span className={`leading-tight ${sel ? 'font-medium text-[#1a3a5c]' : 'text-gray-700'}`}>{test.name}</span>
+                                      <span className={`leading-tight ${sel ? 'font-medium text-[#096abc]' : 'text-gray-700'}`}>{test.name}</span>
                                     </label>
                                   )
                                 })}
@@ -674,13 +674,13 @@ window.onload=function(){window.focus();window.print();};
 
                 <button onClick={() => setShowSavePkg(p => !p)}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg border-2 transition font-medium"
-                  style={{ borderColor: '#1a3a5c', color: '#1a3a5c' }}>
+                  style={{ borderColor: '#096abc', color: '#096abc' }}>
                   <Package size={14}/> Save as Package
                 </button>
 
                 <button onClick={handlePrintInvoice}
                   className="flex items-center gap-1.5 px-5 py-2 text-sm rounded-lg text-white font-semibold transition hover:opacity-90 shadow-md"
-                  style={{ background: '#16a085' }}>
+                  style={{ background: '#096abc' }}>
                   <Receipt size={15}/> Print Invoice
                 </button>
 
@@ -695,7 +695,7 @@ window.onload=function(){window.focus();window.print();};
             {/* Save Package modal */}
             {showSavePkg && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <h3 className="text-sm font-bold mb-3" style={{ color: '#1a3a5c' }}>
+                <h3 className="text-sm font-bold mb-3" style={{ color: '#096abc' }}>
                   Save Current Selection as Package
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -715,7 +715,7 @@ window.onload=function(){window.focus();window.print();};
                 <div className="flex gap-2 mt-3">
                   <button onClick={handleSavePackage} disabled={savingPkg || !pkgName.trim()}
                     className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg text-white font-medium disabled:opacity-50"
-                    style={{ background: '#1a3a5c' }}>
+                    style={{ background: '#096abc' }}>
                     <Plus size={14}/> {savingPkg ? 'Saving…' : 'Save Package'}
                   </button>
                   <button onClick={() => setShowSavePkg(false)}
@@ -732,12 +732,12 @@ window.onload=function(){window.focus();window.print();};
             {/* Preview */}
             {selectedTests.length > 0 && (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#1a3a5c' }}>
+                <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#096abc' }}>
                   Selected Tests Preview
                 </h2>
                 <table className="w-full text-sm border-collapse">
                   <thead>
-                    <tr style={{ background: '#1a3a5c', color: 'white' }}>
+                    <tr style={{ background: '#096abc', color: 'white' }}>
                       <th className="text-left px-4 py-2 text-xs font-semibold w-2/5">Test Category</th>
                       <th className="text-left px-4 py-2 text-xs font-semibold">Test Item</th>
                       {hasPrices && <th className="text-right px-4 py-2 text-xs font-semibold w-24">Price</th>}
@@ -750,7 +750,7 @@ window.onload=function(){window.focus();window.print();};
                         return (
                           <tr key={`${ci}-${ti}`} className={ti % 2 === 0 ? 'bg-white' : 'bg-blue-50/40'}>
                             <td className="px-4 py-1.5 border border-gray-100 text-xs font-semibold"
-                              style={{ color: ti === 0 ? '#1a3a5c' : 'transparent' }}>
+                              style={{ color: ti === 0 ? '#096abc' : 'transparent' }}>
                               {ti === 0 ? cat : ''}
                             </td>
                             <td className="px-4 py-1.5 border border-gray-100 text-xs">{test}</td>
@@ -764,7 +764,7 @@ window.onload=function(){window.focus();window.print();};
                       })
                     )}
                     {hasPrices && (
-                      <tr style={{ background: '#1a3a5c', color: 'white' }}>
+                      <tr style={{ background: '#096abc', color: 'white' }}>
                         <td colSpan={2} className="px-4 py-2 text-xs font-bold text-right">TOTAL</td>
                         <td className="px-4 py-2 text-xs font-bold text-right">${totalPrice.toFixed(2)}</td>
                       </tr>
@@ -779,7 +779,7 @@ window.onload=function(){window.focus();window.print();};
         {/* ── PACKAGES TAB ── */}
         {activeTab === 'packages' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#1a3a5c' }}>
+            <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#096abc' }}>
               Saved Test Packages
             </h2>
             {packages.length === 0 ? (
@@ -794,7 +794,7 @@ window.onload=function(){window.focus();window.print();};
                   <div key={pkg.id} className="border border-gray-200 rounded-xl p-4 hover:border-blue-200 transition">
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <h3 className="font-semibold text-sm" style={{ color: '#1a3a5c' }}>{pkg.name}</h3>
+                        <h3 className="font-semibold text-sm" style={{ color: '#096abc' }}>{pkg.name}</h3>
                         {pkg.description && <p className="text-xs text-gray-400 mt-0.5">{pkg.description}</p>}
                       </div>
                       <button onClick={() => deletePackage(pkg.id)}
@@ -807,7 +807,7 @@ window.onload=function(){window.focus();window.print();};
                     </p>
                     <button onClick={() => { loadPackage(pkg); setActiveTab('form') }}
                       className="w-full text-xs py-1.5 rounded-lg text-white font-medium transition"
-                      style={{ background: '#1a3a5c' }}>
+                      style={{ background: '#096abc' }}>
                       Load Package
                     </button>
                   </div>
@@ -820,7 +820,7 @@ window.onload=function(){window.focus();window.print();};
         {/* ── HISTORY TAB ── */}
         {activeTab === 'history' && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#1a3a5c' }}>
+            <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#096abc' }}>
               Past Lab Requests
             </h2>
             {loadingHist ? (
@@ -831,7 +831,7 @@ window.onload=function(){window.focus();window.print();};
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr style={{ background: '#1a3a5c', color: 'white' }}>
+                    <tr style={{ background: '#096abc', color: 'white' }}>
                       {['Date','Patient','Phone','Tests','Doctor','Action'].map(h => (
                         <th key={h} className="text-left px-3 py-2.5 text-xs font-semibold">{h}</th>
                       ))}
@@ -851,7 +851,7 @@ window.onload=function(){window.focus();window.print();};
                         <td className="px-3 py-2 text-xs">{req.doctor_name}</td>
                         <td className="px-3 py-2 text-xs">
                           <button onClick={() => restoreRequest(req)}
-                            className="text-[#1a3a5c] hover:underline font-medium">
+                            className="text-[#096abc] hover:underline font-medium">
                             Restore
                           </button>
                         </td>

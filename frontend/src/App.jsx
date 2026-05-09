@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import HomePage from './pages/HomePage'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import AdminLogin from './pages/AdminLogin'
@@ -11,10 +12,10 @@ function ProtectedRoute({ children, requireRole }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f4f8' }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#f0f6ff' }}>
         <div className="text-center">
           <div className="w-10 h-10 rounded-full animate-spin mx-auto mb-3"
-            style={{ border: '3px solid #1a3a5c', borderTopColor: 'transparent' }} />
+            style={{ border: '3px solid #096abc', borderTopColor: 'transparent' }} />
           <p className="text-sm text-gray-500">Loading…</p>
         </div>
       </div>
@@ -35,6 +36,9 @@ function ProtectedRoute({ children, requireRole }) {
 function AppRoutes() {
   return (
     <Routes>
+      {/* Public home */}
+      <Route path="/" element={<HomePage />} />
+
       {/* Doctor routes */}
       <Route path="/login"     element={<Login />} />
       <Route path="/register"  element={<Register />} />
@@ -53,7 +57,7 @@ function AppRoutes() {
       } />
 
       {/* Fallback */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

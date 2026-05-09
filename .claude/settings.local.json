@@ -1,7 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php artisan *)"
+      "Bash(git clone *)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git fetch *)",
+      "Bash(git checkout *)",
+      "Bash(npm --version)",
+      "Bash(php --version)",
+      "Bash(composer --version)",
+      "Bash(mysql --version)",
+      "Bash(winget search *)",
+      "Bash(winget install *)",
+      "Bash(Get-Command mysql *)",
+      "Bash(Select-Object -ExpandProperty Source)",
+      "PowerShell(& \"C:\\\\Program Files\\\\MySQL\\\\MySQL Server 8.0\\\\bin\\\\mysql.exe\" -u root -e \"SELECT VERSION\\(\\);\" 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\MySQL\\\\MySQL Server 8.0\\\\bin\\\\mysql.exe\" -u root --password=\"\" -e \"SELECT VERSION\\(\\);\" 2>&1)",
+      "PowerShell(Get-Command *)",
+      "PowerShell(Start-Service *)",
+      "Bash(sc qc *)",
+      "PowerShell(& \"C:\\\\Program Files\\\\MySQL\\\\MySQL Server 8.0\\\\bin\\\\mysql.exe\" -u root -e \"SELECT 1;\" 2>&1)",
+      "Bash(composer install *)",
+      "Bash(npm install *)"
     ]
   }
 }
