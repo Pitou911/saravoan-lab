@@ -2,20 +2,22 @@ import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Menu, X } from 'lucide-react'
 import logo from '../assets/saravoan_logo.png'
+import { useLanguage } from '../context/LanguageContext'
 
 const NAV_LINKS = [
-  { label: 'Home',        to: '/' },
-  { label: 'About Us',    to: '/about' },
-  { label: 'Our Service', to: '/services' },
-  { label: 'Package',     to: '/packages' },
-  { label: 'Our Partner', to: '/partners' },
-  { label: 'Our Test',    to: '/tests' },
-  { label: 'Contact Us',  to: '/contact' },
+  { en: 'Home',        kh: 'ទំព័រដើម',           to: '/' },
+  { en: 'About Us',    kh: 'អំពីយើង',             to: '/about' },
+  { en: 'Our Service', kh: 'សេវាកម្ម',            to: '/services' },
+  { en: 'Package',     kh: 'កញ្ចប់',              to: '/packages' },
+  { en: 'Our Partner', kh: 'ដៃគូររបស់យើង',       to: '/partners' },
+  { en: 'Our Test',    kh: 'តេស្តរបស់យើង',        to: '/tests' },
+  { en: 'Contact Us',  kh: 'ទំនាក់ទំនង',          to: '/contact' },
 ]
 
 export default function Navbar() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const { pathname } = useLocation()
+  const { lang, toggle } = useLanguage()
 
   return (
     <nav style={{ background: '#033c93' }} className="sticky top-0 z-50 shadow-lg">
@@ -40,7 +42,7 @@ export default function Navbar() {
             const active = pathname === l.to
             return (
               <Link
-                key={l.label}
+                key={l.to}
                 to={l.to}
                 className="text-sm font-medium px-2.5 py-2 rounded-md transition-colors"
                 style={{
@@ -50,20 +52,35 @@ export default function Navbar() {
                 onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,0.10)' } }}
                 onMouseLeave={e => { if (!active) { e.currentTarget.style.color = 'rgba(255,255,255,0.80)'; e.currentTarget.style.background = 'transparent' } }}
               >
-                {l.label}
+                {l[lang]}
               </Link>
             )
           })}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Language toggle */}
+          <button
+            onClick={toggle}
+            className="flex items-center rounded-lg overflow-hidden border text-xs font-bold flex-shrink-0"
+            style={{ borderColor: 'rgba(255,255,255,0.25)' }}
+          >
+            <span className="px-2.5 py-1.5 transition-colors" style={{ background: lang === 'en' ? 'rgba(255,255,255,0.20)' : 'transparent', color: lang === 'en' ? '#fff' : 'rgba(255,255,255,0.45)' }}>
+              EN
+            </span>
+            <span className="px-2.5 py-1.5 transition-colors" style={{ background: lang === 'kh' ? 'rgba(255,255,255,0.20)' : 'transparent', color: lang === 'kh' ? '#fff' : 'rgba(255,255,255,0.45)' }}>
+              KH
+            </span>
+          </button>
+
           <Link
             to="/login"
             className="hidden sm:inline-flex items-center text-sm font-semibold px-4 py-2 rounded-lg text-white transition-opacity hover:opacity-90"
             style={{ background: '#e63946' }}
           >
-            Doctor Login
+            {lang === 'en' ? 'Doctor Login' : 'ចូលសម្រាប់គ្រូពេទ្យ'}
           </Link>
+
           <button
             onClick={() => setMobileMenu(m => !m)}
             className="xl:hidden p-2 rounded-md text-white hover:bg-white/10"
@@ -77,13 +94,13 @@ export default function Navbar() {
         <div className="xl:hidden border-t px-4 py-3 flex flex-col gap-1" style={{ borderColor: 'rgba(255,255,255,0.15)' }}>
           {NAV_LINKS.map(l => (
             <Link
-              key={l.label}
+              key={l.to}
               to={l.to}
               onClick={() => setMobileMenu(false)}
               className="text-sm px-3 py-2 rounded-md"
               style={{ color: 'rgba(255,255,255,0.80)' }}
             >
-              {l.label}
+              {l[lang]}
             </Link>
           ))}
           <Link
@@ -92,7 +109,7 @@ export default function Navbar() {
             className="text-sm font-semibold px-4 py-2 rounded-lg text-white text-center mt-2"
             style={{ background: '#e63946' }}
           >
-            Doctor Login
+            {lang === 'en' ? 'Doctor Login' : 'ចូលសម្រាប់គ្រូពេទ្យ'}
           </Link>
         </div>
       )}

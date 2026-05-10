@@ -6,6 +6,7 @@ import {
 import api from '../api/axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import { useLanguage } from '../context/LanguageContext'
 
 const ICON_MAP = [
   { keywords: ['hematol', 'blood cell', 'cbc'],           icon: Activity     },
@@ -28,7 +29,32 @@ function getCategoryIcon(category) {
 
 const BRAND_COLORS = ['#e63946', '#033c93', '#096abc']
 
-function CategoryCard({ cat, index }) {
+const T = {
+  en: {
+    heroEyebrow: 'Comprehensive Diagnostics',
+    heroTitle: 'Our Tests',
+    heroDescLoading: 'Loading our test catalogue…',
+    heroDesc: (total, cats) => `Browse our full catalogue of ${total} laboratory tests across ${cats} diagnostic categories.`,
+    expandHint: 'Click any category to expand the full test list',
+    testCount: (n) => `${n} test${n !== 1 ? 's' : ''} available`,
+    loadingText: 'Loading test categories…',
+    errorText: 'Could not load test data. Please try again later.',
+    emptyText: 'No tests have been added yet.',
+  },
+  kh: {
+    heroEyebrow: 'ការវិនិច្ឆ័យទូលំទូលាយ',
+    heroTitle: 'ការតេស្តរបស់យើង',
+    heroDescLoading: 'កំពុងផ្ទុកបញ្ជីការតេស្ត…',
+    heroDesc: (total, cats) => `ស្វែងរកបញ្ជីការតេស្តចំនួន ${total} របស់យើង ក្នុង ${cats} ប្រភេទវិនិច្ឆ័យ។`,
+    expandHint: 'ចុចលើប្រភេទណាមួយ ដើម្បីមើលបញ្ជីតេស្តពេញលេញ',
+    testCount: (n) => `${n} តេស្ត`,
+    loadingText: 'កំពុងផ្ទុកប្រភេទការតេស្ត…',
+    errorText: 'មិនអាចផ្ទុកទិន្នន័យការតេស្តបាន។ សូមព្យាយាមម្តងទៀតនៅពេលក្រោយ។',
+    emptyText: 'មិនទាន់មានការបន្ថែមការតេស្តណាមួយ។',
+  },
+}
+
+function CategoryCard({ cat, index, s }) {
   const [open, setOpen] = useState(false)
   const Icon  = getCategoryIcon(cat.category)
   const color = BRAND_COLORS[index % BRAND_COLORS.length]
@@ -46,7 +72,7 @@ function CategoryCard({ cat, index }) {
           </div>
           <div>
             <div className="font-bold text-sm" style={{ color: '#033c93' }}>{cat.category}</div>
-            <div className="text-xs text-gray-400">{cat.tests.length} test{cat.tests.length !== 1 ? 's' : ''} available</div>
+            <div className="text-xs text-gray-400">{s.testCount(cat.tests.length)}</div>
           </div>
         </div>
         {open
@@ -76,14 +102,16 @@ function CategoryCard({ cat, index }) {
 }
 
 export default function TestsPage() {
+  const { lang } = useLanguage()
+  const s = T[lang]
   const [categories, setCategories] = useState([])
   const [loading, setLoading]       = useState(true)
-  const [error, setError]           = useState('')
+  const [error, setError]           = useState(false)
 
   useEffect(() => {
     api.get('/public/tests')
       .then(res => setCategories(res.data))
-      .catch(() => setError('Could not load test data. Please try again later.'))
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [])
 
@@ -95,18 +123,15 @@ export default function TestsPage() {
 
       <div className="py-14" style={{ background: 'linear-gradient(135deg, #033c93 0%, #096abc 100%)' }}>
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#e63946' }}>Comprehensive Diagnostics</div>
-          <h1 className="text-4xl font-bold text-white mb-4">Our Tests</h1>
+          <div className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#e63946' }}>{s.heroEyebrow}</div>
+          <h1 className="text-4xl font-bold text-white mb-4">{s.heroTitle}</h1>
           <p className="text-base max-w-xl mx-auto mb-6" style={{ color: 'rgba(255,255,255,0.75)' }}>
-            {loading
-              ? 'Loading our test catalogue…'
-              : `Browse our full catalogue of ${totalTests} laboratory tests across ${categories.length} diagnostic categories.`
-            }
+            {loading ? s.heroDescLoading : s.heroDesc(totalTests, categories.length)}
           </p>
           {!loading && !error && (
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white"
               style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}>
-              Click any category to expand the full test list
+              {s.expandHint}
             </div>
           )}
         </div>
@@ -118,27 +143,26 @@ export default function TestsPage() {
           {loading && (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 size={36} className="animate-spin mb-4" style={{ color: '#e63946' }} />
-              <p className="text-sm text-gray-500">Loading test categories…</p>
+              <p className="text-sm text-gray-500">{s.loadingText}</p>
             </div>
           )}
 
           {error && (
             <div className="flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl p-5 max-w-lg mx-auto">
               <AlertCircle size={20} className="flex-shrink-0" />
-              <span className="text-sm">{error}</span>
+              <span className="text-sm">{s.errorText}</span>
             </div>
           )}
 
           {!loading && !error && categories.length === 0 && (
             <div className="text-center py-20 text-gray-400">
               <FlaskConical size={40} className="mx-auto mb-3 opacity-40" />
-              <p className="text-sm">No tests have been added yet.</p>
+              <p className="text-sm">{s.emptyText}</p>
             </div>
           )}
 
           {!loading && !error && categories.length > 0 && (
             <>
-              {/* Category chips */}
               <div className="flex flex-wrap gap-2 justify-center mb-10">
                 {categories.map((cat, i) => {
                   const Icon  = getCategoryIcon(cat.category)
@@ -155,10 +179,9 @@ export default function TestsPage() {
                 })}
               </div>
 
-              {/* Expandable category cards */}
               <div className="space-y-4">
                 {categories.map((cat, i) => (
-                  <CategoryCard key={cat.category} cat={cat} index={i} />
+                  <CategoryCard key={cat.category} cat={cat} index={i} s={s} />
                 ))}
               </div>
             </>
