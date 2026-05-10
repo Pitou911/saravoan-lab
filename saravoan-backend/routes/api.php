@@ -9,8 +9,10 @@ use App\Http\Controllers\TestPackageController;
 use App\Http\Controllers\AdminController;
 
 // ── Public ─────────────────────────────────────────────────────
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login',    [AuthController::class, 'login']);
+Route::post('/register',      [AuthController::class, 'register']);
+Route::post('/login',         [AuthController::class, 'login']);
+Route::get('/public/tests',   [AdminController::class, 'publicTests']);
+Route::get('/public/team',    [AdminController::class, 'publicTeam']);
 
 // ── Authenticated (doctor + admin) ─────────────────────────────
 Route::middleware('auth:sanctum')->group(function () {
@@ -42,6 +44,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/doctors',             [AdminController::class, 'doctors']);
         Route::get('/requests',            [AdminController::class, 'allRequests']);
         Route::post('/admins',             [AdminController::class, 'createAdmin']);
+
+        // Team member CRUD
+        Route::get('/team',                [AdminController::class, 'getTeam']);
+        Route::post('/team',               [AdminController::class, 'storeTeamMember']);
+        Route::put('/team/{id}',           [AdminController::class, 'updateTeamMember']);
+        Route::delete('/team/{id}',        [AdminController::class, 'destroyTeamMember']);
 
         // Other test options CRUD
         Route::get('/other-tests',         [AdminController::class, 'getOtherTests']);

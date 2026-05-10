@@ -21,7 +21,10 @@
       "Bash(sc qc *)",
       "PowerShell(& \"C:\\\\Program Files\\\\MySQL\\\\MySQL Server 8.0\\\\bin\\\\mysql.exe\" -u root -e \"SELECT 1;\" 2>&1)",
       "Bash(composer install *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(php artisan *)",
+      "Bash(npm run *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\USER\\\\Desktop\\\\saravoan\\\\frontend\\\\src\\\\assets\" -Force | ForEach-Object { $_.Name })"
     ]
   }
 }

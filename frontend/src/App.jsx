@@ -1,6 +1,13 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import HomePage from './pages/HomePage'
+import AboutPage from './pages/AboutPage'
+import ServicesPage from './pages/ServicesPage'
+import PackagesPage from './pages/PackagesPage'
+import PartnersPage from './pages/PartnersPage'
+import TestsPage from './pages/TestsPage'
+import ContactPage from './pages/ContactPage'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import AdminLogin from './pages/AdminLogin'
@@ -33,11 +40,25 @@ function ProtectedRoute({ children, requireRole }) {
   return children
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  return null
+}
+
 function AppRoutes() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Public home */}
-      <Route path="/" element={<HomePage />} />
+      <Route path="/"         element={<HomePage />} />
+      <Route path="/about"    element={<AboutPage />} />
+      <Route path="/services" element={<ServicesPage />} />
+      <Route path="/packages" element={<PackagesPage />} />
+      <Route path="/partners" element={<PartnersPage />} />
+      <Route path="/tests"    element={<TestsPage />} />
+      <Route path="/contact"  element={<ContactPage />} />
 
       {/* Doctor routes */}
       <Route path="/login"     element={<Login />} />
@@ -59,13 +80,14 @@ function AppRoutes() {
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   )
 }
 
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppRoutes />
       </BrowserRouter>
     </AuthProvider>

@@ -83,7 +83,7 @@ export default function Register() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="font-semibold hover:underline" style={{ color: '#096abc' }}>Sign in</Link>
+            <Link to="/login" className="font-semibold hover:underline" style={{ color: '#e63946' }}>Sign in</Link>
           </p>
         </div>
       </div>

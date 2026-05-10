@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\OtherTestOption;
 use App\Models\PrintLog;
+use App\Models\TeamMember;
 use App\Models\User;
 use App\Models\LabRequest;
 use Illuminate\Http\Request;
@@ -18,6 +19,86 @@ class AdminController extends Controller
         if ($request->user()->role !== 'admin') {
             abort(403, 'Admin access required.');
         }
+    }
+
+    // ── Public: active team members (no auth) ─────────────────────
+    public function publicTeam()
+    {
+        return response()->json(
+            TeamMember::where('is_active', true)
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->get()
+        );
+    }
+
+    // ── Admin: all team members ────────────────────────────────────
+    public function getTeam(Request $request)
+    {
+        $this->requireAdmin($request);
+        return response()->json(
+            TeamMember::orderBy('sort_order')->orderBy('name')->get()
+        );
+    }
+
+    public function storeTeamMember(Request $request)
+    {
+        $this->requireAdmin($request);
+
+        $validated = $request->validate([
+            'name'       => 'required|string|max:255',
+            'role'       => 'required|string|max:255',
+            'specialty'  => 'nullable|string|max:255',
+            'bio'        => 'nullable|string',
+            'initials'   => 'required|string|max:5',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        $member = TeamMember::create([...$validated, 'is_active' => true]);
+        return response()->json(['message' => 'Team member added.', 'data' => $member], 201);
+    }
+
+    public function updateTeamMember(Request $request, $id)
+    {
+        $this->requireAdmin($request);
+        $member = TeamMember::findOrFail($id);
+
+        $validated = $request->validate([
+            'name'       => 'sometimes|required|string|max:255',
+            'role'       => 'sometimes|required|string|max:255',
+            'specialty'  => 'nullable|string|max:255',
+            'bio'        => 'nullable|string',
+            'initials'   => 'sometimes|required|string|max:5',
+            'is_active'  => 'sometimes|boolean',
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        $member->update($validated);
+        return response()->json(['message' => 'Updated.', 'data' => $member]);
+    }
+
+    public function destroyTeamMember(Request $request, $id)
+    {
+        $this->requireAdmin($request);
+        TeamMember::findOrFail($id)->delete();
+        return response()->json(['message' => 'Deleted.']);
+    }
+
+    // ── Public: active tests grouped by category (no auth) ────────
+    public function publicTests()
+    {
+        $grouped = OtherTestOption::where('is_active', true)
+            ->orderBy('category')
+            ->orderBy('name')
+            ->get(['id', 'name', 'category', 'sample_type', 'price'])
+            ->groupBy(fn($t) => $t->category ?: 'General')
+            ->map(fn($tests, $category) => [
+                'category' => $category,
+                'tests'    => $tests->values(),
+            ])
+            ->values();
+
+        return response()->json($grouped);
     }
 
     // ── Other Test Options ─────────────────────────────────────────

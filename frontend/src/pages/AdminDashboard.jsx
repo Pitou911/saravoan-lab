@@ -4,7 +4,7 @@ import api from '../api/axios'
 import {
   ShieldCheck, LogOut, Plus, Trash2, Edit2, Check,
   X, Users, FlaskConical, ClipboardList, ToggleLeft,
-  ToggleRight, ChevronDown, Search, Activity, RefreshCw
+  ToggleRight, ChevronDown, Search, Activity, RefreshCw, UserPlus
 } from 'lucide-react'
 
 // ── Searchable creatable dropdown ──────────────────────────────
@@ -110,6 +110,17 @@ export default function AdminDashboard() {
   const [loading, setLoading]       = useState(false)
   const [msg, setMsg]               = useState({ text: '', ok: true })
 
+  // Team members
+  const [teamMembers, setTeamMembers]       = useState([])
+  const [newTmName, setNewTmName]           = useState('')
+  const [newTmRole, setNewTmRole]           = useState('')
+  const [newTmSpecialty, setNewTmSpecialty] = useState('')
+  const [newTmBio, setNewTmBio]             = useState('')
+  const [newTmInitials, setNewTmInitials]   = useState('')
+  const [addingTm, setAddingTm]             = useState(false)
+  const [editTmId, setEditTmId]             = useState(null)
+  const [editTm, setEditTm]                 = useState({})
+
   // Activity log
   const [activityLogs, setActivityLogs]       = useState([])
   const [loadingActivity, setLoadingActivity] = useState(false)
@@ -141,6 +152,7 @@ export default function AdminDashboard() {
     if (activeTab === 'doctors')     loadDoctors()
     if (activeTab === 'stats')       loadStats()
     if (activeTab === 'activity')    loadActivity()
+    if (activeTab === 'team')        loadTeam()
   }, [activeTab])
 
   const loadOtherTests = async () => {
@@ -165,6 +177,69 @@ export default function AdminDashboard() {
     setLoadingActivity(true)
     try { const r = await api.get('/admin/activity'); setActivityLogs(r.data) } catch (_) {}
     finally { setLoadingActivity(false) }
+  }
+
+  const loadTeam = async () => {
+    setLoading(true)
+    try { const r = await api.get('/admin/team'); setTeamMembers(r.data) } catch (_) {}
+    finally { setLoading(false) }
+  }
+
+  const handleAddTeamMember = async () => {
+    if (!newTmName.trim() || !newTmRole.trim() || !newTmInitials.trim()) return
+    setAddingTm(true)
+    try {
+      const r = await api.post('/admin/team', {
+        name:      newTmName.trim(),
+        role:      newTmRole.trim(),
+        specialty: newTmSpecialty.trim() || null,
+        bio:       newTmBio.trim() || null,
+        initials:  newTmInitials.trim().toUpperCase(),
+      })
+      setTeamMembers(p => [...p, r.data.data])
+      setNewTmName(''); setNewTmRole(''); setNewTmSpecialty(''); setNewTmBio(''); setNewTmInitials('')
+      showMsg('✓ Team member added.')
+    } catch (err) {
+      showMsg('✗ ' + (err.response?.data?.message || 'Failed.'), false)
+    } finally { setAddingTm(false) }
+  }
+
+  const handleToggleTeamMember = async (m) => {
+    try {
+      const r = await api.put(`/admin/team/${m.id}`, { is_active: !m.is_active })
+      setTeamMembers(p => p.map(t => t.id === m.id ? r.data.data : t))
+    } catch (_) {}
+  }
+
+  const startEditTm = (m) => {
+    setEditTmId(m.id)
+    setEditTm({ name: m.name, role: m.role, specialty: m.specialty || '', bio: m.bio || '', initials: m.initials })
+  }
+
+  const handleSaveEditTm = async () => {
+    try {
+      const r = await api.put(`/admin/team/${editTmId}`, {
+        name:      editTm.name.trim(),
+        role:      editTm.role.trim(),
+        specialty: editTm.specialty.trim() || null,
+        bio:       editTm.bio.trim() || null,
+        initials:  editTm.initials.trim().toUpperCase(),
+      })
+      setTeamMembers(p => p.map(t => t.id === editTmId ? r.data.data : t))
+      setEditTmId(null)
+      showMsg('✓ Updated.')
+    } catch (err) {
+      showMsg('✗ ' + (err.response?.data?.message || 'Failed.'), false)
+    }
+  }
+
+  const handleDeleteTeamMember = async (id) => {
+    if (!confirm('Delete this team member?')) return
+    try {
+      await api.delete(`/admin/team/${id}`)
+      setTeamMembers(p => p.filter(t => t.id !== id))
+      showMsg('✓ Deleted.')
+    } catch (_) {}
   }
 
   const filteredActivity = activityFilter === 'all'
@@ -252,6 +327,7 @@ export default function AdminDashboard() {
 
   const tabs = [
     { id: 'other-tests', label: 'Other Test Options', icon: <FlaskConical size={14}/> },
+    { id: 'team',        label: 'Team Members',        icon: <UserPlus size={14}/> },
     { id: 'doctors',     label: 'Doctors',             icon: <Users size={14}/> },
     { id: 'stats',       label: 'Overview',            icon: <ClipboardList size={14}/> },
     { id: 'activity',    label: 'Activity Log',        icon: <Activity size={14}/> },
@@ -611,6 +687,162 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ── TEAM TAB ── */}
+        {activeTab === 'team' && (
+          <>
+            {/* Add form */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#e63946' }}>
+                Add Team Member
+              </h2>
+
+              {msg.text && (
+                <div className={`text-sm font-medium px-3 py-2 rounded-lg mb-4 ${msg.ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {msg.text}
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Full Name *</label>
+                  <input type="text" value={newTmName} onChange={e => setNewTmName(e.target.value)}
+                    placeholder="Dr. Sokha Chea"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/30" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Role *</label>
+                  <input type="text" value={newTmRole} onChange={e => setNewTmRole(e.target.value)}
+                    placeholder="Laboratory Director"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/30" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Initials *</label>
+                  <input type="text" value={newTmInitials} onChange={e => setNewTmInitials(e.target.value.slice(0,5))}
+                    placeholder="SC"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/30" />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Specialty</label>
+                  <input type="text" value={newTmSpecialty} onChange={e => setNewTmSpecialty(e.target.value)}
+                    placeholder="Clinical Chemistry"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/30" />
+                </div>
+                <div className="lg:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wide">Bio</label>
+                  <input type="text" value={newTmBio} onChange={e => setNewTmBio(e.target.value)}
+                    placeholder="Short description (optional)"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-900/30" />
+                </div>
+              </div>
+              <button
+                onClick={handleAddTeamMember}
+                disabled={addingTm || !newTmName.trim() || !newTmRole.trim() || !newTmInitials.trim()}
+                className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold text-white transition disabled:opacity-50"
+                style={{ background: '#e63946' }}
+              >
+                <Plus size={14} /> {addingTm ? 'Adding…' : 'Add Member'}
+              </button>
+            </div>
+
+            {/* Team list */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+              <h2 className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: '#096abc' }}>
+                Team Members ({teamMembers.length})
+              </h2>
+
+              {loading ? (
+                <div className="text-center py-8 text-gray-400 text-sm">Loading…</div>
+              ) : teamMembers.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-sm">No team members yet.</div>
+              ) : (
+                <div className="space-y-3">
+                  {teamMembers.map(m => (
+                    <div key={m.id} className={`border rounded-xl p-4 transition ${m.is_active ? 'border-gray-200' : 'border-gray-100 opacity-60'}`}>
+                      {editTmId === m.id ? (
+                        <div className="space-y-3">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                            {[
+                              { label: 'Name', key: 'name', placeholder: 'Full name' },
+                              { label: 'Role', key: 'role', placeholder: 'Role' },
+                              { label: 'Initials', key: 'initials', placeholder: 'SC' },
+                              { label: 'Specialty', key: 'specialty', placeholder: 'Specialty' },
+                            ].map(f => (
+                              <div key={f.key}>
+                                <label className="block text-xs font-semibold text-gray-400 mb-1">{f.label}</label>
+                                <input
+                                  type="text"
+                                  value={editTm[f.key] || ''}
+                                  onChange={e => setEditTm(p => ({ ...p, [f.key]: e.target.value }))}
+                                  placeholder={f.placeholder}
+                                  className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-900/30"
+                                />
+                              </div>
+                            ))}
+                            <div className="md:col-span-2">
+                              <label className="block text-xs font-semibold text-gray-400 mb-1">Bio</label>
+                              <input
+                                type="text"
+                                value={editTm.bio || ''}
+                                onChange={e => setEditTm(p => ({ ...p, bio: e.target.value }))}
+                                placeholder="Short bio"
+                                className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-900/30"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button onClick={handleSaveEditTm}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold text-white"
+                              style={{ background: '#096abc' }}>
+                              <Check size={12} /> Save
+                            </button>
+                            <button onClick={() => setEditTmId(null)}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-600">
+                              <X size={12} /> Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div
+                              className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
+                              style={{ background: 'linear-gradient(135deg, #e63946, #033c93)' }}
+                            >
+                              {m.initials}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm" style={{ color: '#033c93' }}>{m.name}</div>
+                              <div className="text-xs font-medium" style={{ color: '#e63946' }}>{m.role}</div>
+                              {m.specialty && <div className="text-xs text-gray-400">{m.specialty}</div>}
+                              {m.bio && <div className="text-xs text-gray-500 mt-1 max-w-sm">{m.bio}</div>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button onClick={() => handleToggleTeamMember(m)} title={m.is_active ? 'Deactivate' : 'Activate'}>
+                              {m.is_active
+                                ? <ToggleRight size={20} style={{ color: '#096abc' }} />
+                                : <ToggleLeft  size={20} className="text-gray-300" />
+                              }
+                            </button>
+                            <button onClick={() => startEditTm(m)}
+                              className="p-1.5 rounded-lg hover:bg-gray-100 transition text-gray-500">
+                              <Edit2 size={13} />
+                            </button>
+                            <button onClick={() => handleDeleteTeamMember(m.id)}
+                              className="p-1.5 rounded-lg hover:bg-red-50 transition text-red-400">
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* ── STATS TAB ── */}
